@@ -529,11 +529,11 @@ var stdioRoutes = []stdioRoute{
 
 	// hitl
 	{verb: "GET", re: re(`^/hitl/requests/pending$`), rpc: "list.pending.hitl", build: noParams},
+	{verb: "GET", re: re(`^/hitl/requests/events$`), rpc: "watch.hitl", stream: true, convert: hitlEvent, build: noParams},
 	{verb: "POST", re: re(`^/hitl/requests$`), rpc: "request.hitl", build: directBody},
 	{verb: "GET", re: re(`^/hitl/requests/([^/]+)$`), rpc: "get.hitl", build: params("id")},
 	{verb: "POST", re: re(`^/hitl/requests/([^/]+)/response$`), rpc: "submit.hitl", build: extendBody("id")},
 	{verb: "POST", re: re(`^/hitl/requests/([^/]+)/cancel$`), rpc: "cancel.hitl", build: extendBody("id")},
-	{verb: "GET", re: re(`^/hitl/requests/events$`), rpc: "watch.hitl", stream: true, convert: hitlEvent, build: noParams},
 
 	// settings
 	{verb: "GET", re: re(`^/settings/([^/]+)$`), rpc: "get.setting", build: params("key")},

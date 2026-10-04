@@ -263,6 +263,48 @@ func TestStdioOpenStreamWatch(t *testing.T) {
 	}
 }
 
+func TestStdioOpenStreamHitlWatch(t *testing.T) {
+	p := newStdioTestPair(t)
+
+	read, err := p.stdio.OpenStream("GET", "/hitl/requests/events", nil, nil)
+	if err != nil {
+		t.Fatalf("OpenStream: %v", err)
+	}
+	defer read.Close()
+
+	req := p.nextRequest()
+	if req["method"] != "watch.hitl" {
+		t.Fatalf("method = %v, want watch.hitl", req["method"])
+	}
+	id, _ := req["id"].(string)
+	if id == "" {
+		t.Fatalf("missing id in request: %v", req)
+	}
+
+	p.respond(map[string]any{
+		"jsonrpc": "2.0",
+		"method":  "hitl.event",
+		"params":  map[string]any{"event": map[string]any{"type": "request", "request": map[string]any{"id": "req-1"}}, "requestId": id},
+	})
+
+	got, err := read.ReadEvent()
+	if err != nil {
+		t.Fatalf("ReadEvent: %v", err)
+	}
+	var gotEvent struct {
+		Type    string `json:"type"`
+		Request struct {
+			ID string `json:"id"`
+		} `json:"request"`
+	}
+	if err := json.Unmarshal(got, &gotEvent); err != nil {
+		t.Fatalf("event not JSON: %v (raw=%s)", err, got)
+	}
+	if gotEvent.Type != "request" || gotEvent.Request.ID != "req-1" {
+		t.Fatalf("unexpected event: %+v", gotEvent)
+	}
+}
+
 func TestStdioOpenStreamEOFOnFinalResult(t *testing.T) {
 	p := newStdioTestPair(t)
 
@@ -391,6 +433,12 @@ func TestStdioRouteMapping(t *testing.T) {
 		{"POST", "/workspaces/ws-1/categories", "create.category"},
 		{"PATCH", "/workspaces/ws-1/categories/c-1", "rename.category"},
 		{"DELETE", "/workspaces/ws-1/categories/c-1", "delete.category"},
+		{"GET", "/hitl/requests/pending", "list.pending.hitl"},
+		{"GET", "/hitl/requests/events", "watch.hitl"},
+		{"POST", "/hitl/requests", "request.hitl"},
+		{"GET", "/hitl/requests/req-1", "get.hitl"},
+		{"POST", "/hitl/requests/req-1/response", "submit.hitl"},
+		{"POST", "/hitl/requests/req-1/cancel", "cancel.hitl"},
 		{"GET", "/settings/some-key", "get.setting"},
 		{"PUT", "/settings/some-key", "set.setting"},
 		{"GET", "/workspaces/ws-1/mcp/servers", "list.mcp-server"},
