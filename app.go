@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/joho/godotenv"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"codryn/desktop/internal/attachments"
 	"codryn/desktop/internal/backend"
@@ -50,24 +52,13 @@ type App struct {
 }
 
 func NewApp() *App {
-	_ = godotenv.Load()
-
-	backendMgr, transport, err := resolveTransport()
-	if err != nil {
-		panic(err)
-	}
-
-	c := client.NewWithTransport(transport)
-
-	if os.Getenv("USE_MOCK") == "true" {
-		mockapi.EnableMock(c)
-	}
+	c := client.NewWithTransport(nil)
 
 	settingsSvc := settings.NewService(c)
 
 	return &App{
 		Client:         c,
-		Backend:        backendMgr,
+		Backend:        nil, // wired in startup(); stays nil for mock/HTTP modes.
 		Workspaces:     workspaces.NewService(c),
 		Chats:          chats.NewService(c),
 		Messages:       messages.NewService(c),
@@ -88,29 +79,6 @@ func NewApp() *App {
 	}
 }
 
-// resolveTransport picks the delivery boundary, highest to lowest:
-//   - USE_MOCK=true       -> in-process HTTP mock (mirrors real routes)
-//   - BACKEND_URL set     -> external HTTP backend, no spawn (manual dev)
-//   - otherwise           -> spawn the backend CLI (codryn on OS PATH) over STDIO
-func resolveTransport() (*backend.Manager, client.Transport, error) {
-	if os.Getenv("USE_MOCK") == "true" {
-		return nil, nil, nil // mock transport is set by EnableMock below
-	}
-	if os.Getenv("BACKEND_URL") != "" {
-		return nil, client.New().Transport(), nil
-	}
-	mgr, err := backend.NewManagerFromEnv()
-	if err != nil {
-		return nil, nil, err
-	}
-	mgr.SetLogFile(filepath.Join(logDir(), "backend.log"))
-	transport, err := mgr.Start()
-	if err != nil {
-		return nil, nil, err
-	}
-	return mgr, transport, nil
-}
-
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.FileWatch.SetAppContext(ctx)
@@ -119,6 +87,47 @@ func (a *App) startup(ctx context.Context) {
 	a.ShellExecWatch.SetAppContext(ctx)
 	a.Files.SetAppContext(ctx)
 	a.Attachments.SetAppContext(ctx)
+
+	a.connectBackend(ctx)
+}
+
+// connectBackend resolves and wires the backend transport. This is the only
+// place that may look up or spawn the backend CLI, and it runs solely when
+// a user opens the app. Failures are reported to the user, never panicked.
+func (a *App) connectBackend(ctx context.Context) {
+	_ = godotenv.Load()
+
+	if os.Getenv("USE_MOCK") == "true" {
+		mockapi.EnableMock(a.Client)
+		return
+	}
+	if os.Getenv("BACKEND_URL") != "" {
+		a.Client.SetTransport(client.New().Transport())
+		return
+	}
+	mgr, err := backend.NewManagerFromEnv()
+	if err != nil {
+		a.reportBackendError(ctx, err)
+		return
+	}
+	mgr.SetLogFile(filepath.Join(logDir(), "backend.log"))
+	transport, err := mgr.Start()
+	if err != nil {
+		a.reportBackendError(ctx, err)
+		return
+	}
+	a.Backend = mgr
+	a.Client.SetTransport(transport)
+}
+
+// reportBackendError informs the user that the backend is unavailable.
+func (a *App) reportBackendError(ctx context.Context, err error) {
+	fmt.Fprintf(os.Stderr, "[backend] %v\n", err)
+	_, _ = runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+		Type:    runtime.ErrorDialog,
+		Title:   "Codryn",
+		Message: "Codryn backend not found. Please reinstall Codryn.",
+	})
 }
 
 // onShutdown stops the spawned backend cleanly.

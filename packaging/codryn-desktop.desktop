@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Codryn
+Comment=Codryn desktop client
+Exec=/usr/bin/codryn-desktop
+Icon=codryn-desktop
+Terminal=false
+Type=Application
+Categories=Development;
+StartupWMClass=codryn-desktop

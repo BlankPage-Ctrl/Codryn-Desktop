@@ -1,0 +1,10 @@
+#!/bin/sh
+# Refresh icon and desktop entry caches after removing codryn-desktop.
+set -e
+if [ -x /usr/bin/gtk-update-icon-cache ]; then
+  gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
+fi
+if [ -x /usr/bin/update-desktop-database ]; then
+  update-desktop-database /usr/share/applications || true
+fi
+exit 0

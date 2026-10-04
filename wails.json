@@ -1,14 +1,11 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "codryn",
-  "outputfilename": "codryn",
+  "outputfilename": "codryn-desktop",
   "frontend:install": "npm install",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "http://localhost:5173",
-  "preBuildHooks": {
-    "*/*": "scripts/stage-backend.sh ${platform}"
-  },
   "author": {
     "name": "BlankPage-Ctrl",
     "email": "wilfredowidjadmiko@gmail.com"
