@@ -1,0 +1,25 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "exclude": ["src/**/__tests__/*", "dist"],
+  "compilerOptions": {
+    // Extra safety for array and object lookups, but may have false positives.
+    "noUncheckedIndexedAccess": true,
+
+    // Path mapping for cleaner imports.
+    "paths": {
+      "@/*": ["./src/*"],
+      "@stream-markdown/core": ["./src/vendor/vue-stream-markdown/core/src/index.ts"],
+      "@stream-markdown/code": ["./src/vendor/vue-stream-markdown/extensions/code/src/index.ts"],
+      "@stream-markdown/html": ["./src/vendor/vue-stream-markdown/extensions/html/src/index.ts"],
+      "@stream-markdown/math": ["./src/vendor/vue-stream-markdown/extensions/math/src/index.ts"],
+      "@stream-markdown/mermaid": ["./src/vendor/vue-stream-markdown/extensions/mermaid/src/index.ts"],
+      "@markmend/ast": ["./src/vendor/vue-stream-markdown/markmend/ast/src/index.ts"],
+      "@markmend/core": ["./src/vendor/vue-stream-markdown/markmend/core/src/index.ts"]
+    },
+
+    // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.
+    // Specified here to keep it out of the root directory.
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo"
+  }
+}

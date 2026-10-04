@@ -1,0 +1,27 @@
+/* --- Typography --- */
+
+.text-muted {
+    font-size: var(--type-sm);
+    color: var(--text-primary);
+    opacity: 0.4;
+}
+
+/* Eyebrow / uppercase label — single shared treatment */
+.eyebrow,
+.text-eyebrow {
+    font-size: var(--type-2xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-primary);
+}
+
+.confirm-message {
+    display: block;
+    text-align: center;
+    font-size: var(--type-md);
+    line-height: 1.5;
+    color: var(--text-primary);
+    opacity: 0.75;
+    padding: 4px 0;
+}

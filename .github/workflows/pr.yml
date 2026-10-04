@@ -1,0 +1,76 @@
+name: pr
+
+# Full chain for every pull request: frontend lint > format > typecheck
+# (vue-tsc) > vite build, then go vet > go build.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (oxlint)
+        run: npm run lint:check:oxlint
+
+      - name: Lint (eslint)
+        run: npm run lint:check:eslint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Typecheck (vue-tsc)
+        run: npm run type-check
+
+      - name: Build (vite)
+        run: npm run build-only
+
+  go:
+    runs-on: ubuntu-latest
+    needs: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Stub frontend embed
+        run: |
+          mkdir -p frontend/dist
+          printf '<!doctype html><title>codryn</title>' > frontend/dist/index.html
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Format check
+        run: test -z "$(gofmt -l .)"
+
+      - name: Test
+        run: go test ./...
+
+      - name: Build
+        run: go build -o /tmp/codryn-pr-check .

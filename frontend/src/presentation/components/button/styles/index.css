@@ -1,0 +1,247 @@
+.btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    user-select: none;
+    transition:
+        background 120ms ease,
+        color 120ms ease,
+        opacity 120ms ease,
+        box-shadow 120ms ease;
+}
+
+.btn:disabled,
+.btn--disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.btn--full {
+    width: 100%;
+}
+
+/* ── Variants ──────────────────────────────────────────────── */
+
+.btn--solid {
+    background: var(--border-color);
+    color: var(--bg-primary);
+}
+
+.btn--solid:hover:not(:disabled):not(.btn--disabled) {
+    background: var(--text-primary);
+    box-shadow: inset 0 0 0 1px var(--text-primary);
+}
+
+.btn--outline {
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    opacity: 0.65;
+}
+
+.btn--outline:hover:not(:disabled):not(.btn--disabled) {
+    background: rgba(var(--raw-border-color), 0.3);
+    border-color: var(--border-color);
+    opacity: 1;
+}
+
+.btn--ghost {
+    color: var(--text-primary);
+    opacity: 0.4;
+}
+
+.btn--ghost:hover:not(:disabled):not(.btn--disabled) {
+    opacity: 1;
+    background: rgba(var(--raw-border-color), 0.3);
+}
+
+.btn--soft {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    opacity: 0.7;
+}
+
+.btn--soft:hover:not(:disabled):not(.btn--disabled) {
+    background: var(--bg-secondary);
+    box-shadow: inset 0 0 0 1px var(--border-color);
+    opacity: 1;
+}
+
+.btn--link {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.btn--link:hover:not(:disabled):not(.btn--disabled) {
+    color: var(--text-primary);
+    opacity: 1;
+}
+
+/* Danger overrides */
+.btn--danger.btn--solid {
+    background: var(--color-danger);
+    color: #fff;
+}
+
+.btn--danger.btn--solid:hover:not(:disabled):not(.btn--disabled) {
+    opacity: 0.85;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.btn--danger.btn--ghost:hover:not(:disabled):not(.btn--disabled) {
+    background: var(--color-danger);
+    color: var(--color-danger);
+    opacity: 1;
+}
+
+/* ── Sizes ─────────────────────────────────────────────────── */
+
+.btn--xs {
+    padding: 4px 8px;
+    font-size: var(--type-xs);
+    gap: 4px;
+}
+
+.btn--sm {
+    padding: 6px 12px;
+    font-size: var(--type-sm);
+    gap: 6px;
+}
+
+.btn--md {
+    padding: 8px 16px;
+    font-size: var(--type-md);
+    gap: 8px;
+}
+
+.btn--lg {
+    padding: 10px 20px;
+    font-size: var(--type-lg);
+    gap: 10px;
+}
+
+.btn--xl {
+    padding: 12px 24px;
+    font-size: var(--type-xl);
+    gap: 12px;
+}
+
+/* Icon-only: square */
+.btn--icon-only.btn--xs {
+    padding: 4px;
+    min-width: 28px;
+    min-height: 28px;
+}
+
+.btn--icon-only.btn--sm {
+    padding: 6px;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+.btn--icon-only.btn--md {
+    padding: 8px;
+    min-width: 36px;
+    min-height: 36px;
+}
+
+.btn--icon-only.btn--lg {
+    padding: 10px;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+.btn--icon-only.btn--xl {
+    padding: 12px;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* ── Radius ────────────────────────────────────────────────── */
+
+.btn--radius-none {
+    border-radius: 0;
+}
+.btn--radius-sm {
+    border-radius: 4px;
+}
+.btn--radius-md {
+    border-radius: 4px;
+}
+.btn--radius-lg {
+    border-radius: 4px;
+}
+.btn--radius-full {
+    border-radius: 9999px;
+}
+
+/* ── Inner layout ──────────────────────────────────────────── */
+
+.btn__inner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: inherit;
+    min-width: 0;
+}
+
+.btn__icon {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    line-height: 0;
+}
+
+.btn__label {
+    display: inline-block;
+    line-height: 1;
+}
+
+/* ── Spinner ───────────────────────────────────────────────── */
+
+.btn__spinner {
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Ripple ────────────────────────────────────────────────── */
+
+.btn__ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(19, 16, 16, 0.12);
+    pointer-events: none;
+    transform: scale(0);
+}
+
+.btn__ripple--active {
+    animation: btn-ripple-anim 0.5s ease-out;
+}
+
+@keyframes btn-ripple-anim {
+    to {
+        transform: scale(3);
+        opacity: 0;
+    }
+}

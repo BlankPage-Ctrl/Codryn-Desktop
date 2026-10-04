@@ -1,0 +1,23 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "codryn",
+  "outputfilename": "codryn",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "http://localhost:5173",
+  "preBuildHooks": {
+    "*/*": "scripts/stage-backend.sh ${platform}"
+  },
+  "author": {
+    "name": "BlankPage-Ctrl",
+    "email": "wilfredowidjadmiko@gmail.com"
+  },
+  "info": {
+    "companyName": "Codryn",
+    "productName": "Codryn",
+    "productVersion": "0.0.0-dev",
+    "copyright": "(C) 2026 Wilfredo Wijatmiko",
+    "comments": "Codryn desktop. Version is overwritten by CI from the GitHub Release tag."
+  }
+}

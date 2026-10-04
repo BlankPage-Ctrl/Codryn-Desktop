@@ -1,0 +1,195 @@
+{
+    "id": "root",
+    "name": "project-test",
+    "path": "/",
+    "type": "directory",
+    "isDirectory": true,
+    "hasChildren": true,
+    "children": [
+        {
+            "id": "7737a8c74797",
+            "name": "src",
+            "path": "src",
+            "type": "directory",
+            "isDirectory": true,
+            "lastModified": 1781960406301.5986,
+            "hasChildren": true,
+            "children": [
+                {
+                    "id": "0b9d145c8dbc",
+                    "name": "controllers",
+                    "path": "src/controllers",
+                    "type": "directory",
+                    "isDirectory": true,
+                    "lastModified": 1781960406299.8489,
+                    "hasChildren": true,
+                    "children": [
+                        {
+                            "id": "d0309fe0a8c4",
+                            "name": "auth.controller.ts",
+                            "path": "src/controllers/auth.controller.ts",
+                            "type": "file",
+                            "isDirectory": false,
+                            "size": 1178,
+                            "lastModified": 1781960406299.8489
+                        }
+                    ]
+                },
+                {
+                    "id": "22a87bc91128",
+                    "name": "data",
+                    "path": "src/data",
+                    "type": "directory",
+                    "isDirectory": true,
+                    "lastModified": 1781960406300.0444,
+                    "hasChildren": true,
+                    "children": [
+                        {
+                            "id": "c32a9083f745",
+                            "name": "users.ts",
+                            "path": "src/data/users.ts",
+                            "type": "file",
+                            "isDirectory": false,
+                            "size": 213,
+                            "lastModified": 1781960406300.0444
+                        }
+                    ]
+                },
+                {
+                    "id": "0be4ff7d0420",
+                    "name": "middleware",
+                    "path": "src/middleware",
+                    "type": "directory",
+                    "isDirectory": true,
+                    "lastModified": 1781960406300.0444,
+                    "hasChildren": true,
+                    "children": [
+                        {
+                            "id": "646a62463aa2",
+                            "name": "auth.middleware.ts",
+                            "path": "src/middleware/auth.middleware.ts",
+                            "type": "file",
+                            "isDirectory": false,
+                            "size": 553,
+                            "lastModified": 1781960406300.0444
+                        }
+                    ]
+                },
+                {
+                    "id": "1a841ab9f296",
+                    "name": "routes",
+                    "path": "src/routes",
+                    "type": "directory",
+                    "isDirectory": true,
+                    "lastModified": 1781960406300.0444,
+                    "hasChildren": true,
+                    "children": [
+                        {
+                            "id": "f39f63e0ece6",
+                            "name": "auth.routes.ts",
+                            "path": "src/routes/auth.routes.ts",
+                            "type": "file",
+                            "isDirectory": false,
+                            "size": 370,
+                            "lastModified": 1781960406300.0444
+                        }
+                    ]
+                },
+                {
+                    "id": "7e11f35f2c39",
+                    "name": "services",
+                    "path": "src/services",
+                    "type": "directory",
+                    "isDirectory": true,
+                    "lastModified": 1781960406301.0444,
+                    "hasChildren": true,
+                    "children": [
+                        {
+                            "id": "bea5580b9c05",
+                            "name": "auth.service.ts",
+                            "path": "src/services/auth.service.ts",
+                            "type": "file",
+                            "isDirectory": false,
+                            "size": 1451,
+                            "lastModified": 1781960406301.5986
+                        }
+                    ]
+                },
+                {
+                    "id": "726a18723622",
+                    "name": "types",
+                    "path": "src/types",
+                    "type": "directory",
+                    "isDirectory": true,
+                    "lastModified": 1781960406301.8513,
+                    "hasChildren": true,
+                    "children": [
+                        {
+                            "id": "58a62ef6fc7e",
+                            "name": "express.d.ts",
+                            "path": "src/types/express.d.ts",
+                            "type": "file",
+                            "isDirectory": false,
+                            "size": 153,
+                            "lastModified": 1781960406301.5986
+                        },
+                        {
+                            "id": "151553f19995",
+                            "name": "index.ts",
+                            "path": "src/types/index.ts",
+                            "type": "file",
+                            "isDirectory": false,
+                            "size": 306,
+                            "lastModified": 1781960406301.8513
+                        }
+                    ]
+                },
+                {
+                    "id": "6735f655650e",
+                    "name": "index.ts",
+                    "path": "src/index.ts",
+                    "type": "file",
+                    "isDirectory": false,
+                    "size": 471,
+                    "lastModified": 1781960406300.0444
+                }
+            ]
+        },
+        {
+            "id": "ce090e67c8b2",
+            "name": ".gitignore",
+            "path": ".gitignore",
+            "type": "file",
+            "isDirectory": false,
+            "size": 31,
+            "lastModified": 1781960406296.0442
+        },
+        {
+            "id": "0483b5f38d5b",
+            "name": "package-lock.json",
+            "path": "package-lock.json",
+            "type": "file",
+            "isDirectory": false,
+            "size": 81350,
+            "lastModified": 1781960406299.2493
+        },
+        {
+            "id": "304998d11dff",
+            "name": "package.json",
+            "path": "package.json",
+            "type": "file",
+            "isDirectory": false,
+            "size": 572,
+            "lastModified": 1781960406299.6702
+        },
+        {
+            "id": "68f627c06370",
+            "name": "tsconfig.json",
+            "path": "tsconfig.json",
+            "type": "file",
+            "isDirectory": false,
+            "size": 445,
+            "lastModified": 1781960406302.0444
+        }
+    ]
+}

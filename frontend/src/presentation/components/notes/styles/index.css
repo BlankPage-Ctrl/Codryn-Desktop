@@ -1,0 +1,183 @@
+.note-tab {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.note-tab__scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 28px 24px;
+}
+
+.note-tab__scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.note-tab__scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.note-tab__scroll::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+/* --- Name (sticky on scroll) --- */
+
+.note-name {
+    position: sticky;
+    top: -18px;
+    z-index: 2;
+    background: var(--bg-primary);
+    padding: 12px 0 4px;
+}
+
+.note-name__text {
+    font-family: var(--font-serif);
+    font-size: var(--type-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0;
+    cursor: text;
+    user-select: none;
+}
+
+.note-name__input {
+    width: 100%;
+    font-family: var(--font-serif);
+    font-size: var(--type-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    outline: none;
+    padding: 0 0 4px;
+}
+
+/* --- Desc --- */
+
+.note-desc {
+    width: 100%;
+    font-size: var(--type-md);
+    color: var(--text-primary);
+    opacity: 0.75;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    outline: none;
+    padding: 2px 0;
+    transition: border-color 100ms ease;
+}
+
+.note-desc:focus {
+    border-bottom-color: var(--border-color);
+}
+
+/* --- Pickers --- */
+
+.note-tab__pickers {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.note-category {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.note-category__label {
+    font-size: var(--type-xs);
+    color: var(--text-primary);
+    opacity: 0.55;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.note-category__ctrl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.note-category__select {
+    font-size: var(--type-sm);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 4px 8px;
+    outline: none;
+    cursor: pointer;
+}
+
+/* --- Details (prioritized, largest container) --- */
+
+.note-tab__details {
+    flex: 1;
+    min-height: 320px;
+    display: flex;
+}
+
+.note-details {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    font-family: var(--font-mono);
+    font-size: var(--type-md);
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 100ms ease;
+}
+
+.note-details:focus {
+    border-color: var(--raw-border-color);
+}
+
+/* --- Save panel (sticky bottom, always visible) --- */
+
+.note-save-panel {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 28px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-primary);
+}
+
+.note-save-panel__left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.note-save-panel__status {
+    font-size: var(--type-xs);
+    color: var(--text-primary);
+    opacity: 0.5;
+    white-space: nowrap;
+}
+
+.note-save-panel__status--dirty {
+    opacity: 1;
+    color: #e8a33d;
+}

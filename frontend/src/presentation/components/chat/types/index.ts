@@ -1,0 +1,43 @@
+export type {
+    ChatTabSchema,
+    ChatInputSchema,
+    MessageBubbleSchema,
+    MessageListSchema,
+    TextPartSchema,
+    ReasoningPartSchema,
+    ToolCallPartSchema,
+    ToolCallGroupPartSchema,
+    WorkLogPartSchema,
+    SourcePartSchema,
+    FilePartSchema,
+    ListFilesToolData,
+    ReadFileToolData,
+    EditFileToolData,
+    RunShellToolData,
+    ToolData,
+    ToolFileNode,
+    FeedWorkPartState,
+    StepIndicatorSchema,
+    MessagePartSchema,
+    ResolvedChatTab,
+    ResolvedChatInput,
+    ResolvedMessageBubble,
+    ResolvedMessageList,
+    ResolvedTextPart,
+    ResolvedReasoningPart,
+    ResolvedToolCallPart,
+    ResolvedToolCallGroup,
+    ResolvedWorkLog,
+    ResolvedSourcePart,
+    ResolvedFilePart,
+    ResolvedStepIndicator,
+} from './resolved'
+
+export type { AttachedImage, AttachedImageStatus } from './attachment'
+
+export type {
+    ChatTabSchema as ChatTabSchemaInput,
+    ChatInputSchema as ChatInputSchemaInput,
+    MessageBubbleSchema as MessageBubbleSchemaInput,
+    MessageListSchema as MessageListSchemaInput,
+} from './schema'
