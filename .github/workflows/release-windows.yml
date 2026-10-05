@@ -1,0 +1,95 @@
+name: release-windows
+
+# Windows release: Wails exe > Inno Setup installer + portable zip.
+# Same tag trigger and version flow as release-linux.yml; the local
+# equivalent is documented in packaging/windows/codryn.iss.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag to build (e.g. v1.2.3). No GitHub Release is created for manual runs.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install Wails CLI
+        shell: pwsh
+        run: |
+          go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
+          Add-Content $env:GITHUB_PATH "$(go env GOPATH)\bin"
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Resolve version
+        shell: pwsh
+        run: |
+          $tag = "${{ inputs.tag }}"
+          if ([string]::IsNullOrEmpty($tag)) { $tag = $env:GITHUB_REF_NAME }
+          $env:CODRYN_VERSION = $tag
+          go run ./packaging/tools/version --sync-wails-json
+          $ver = go run ./packaging/tools/version
+          Add-Content $env:GITHUB_ENV "TAG=$tag"
+          Add-Content $env:GITHUB_ENV "VER=$ver"
+          Add-Content $env:GITHUB_ENV "CODRYN_VERSION=$tag"
+
+      - name: Build (wails)
+        shell: pwsh
+        run: wails build -clean -ldflags "-X codryn/desktop/internal/version.Version=$env:VER"
+
+      - name: Package (Inno Setup + portable zip)
+        shell: pwsh
+        run: |
+          iscc /DAppVersion=$env:VER packaging\windows\codryn.iss
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item "build\bin\codryn-desktop-$env:VER-setup-windows-amd64.exe" dist\
+          Compress-Archive -Path build\bin\codryn-desktop.exe -DestinationPath "dist\codryn-desktop-$env:VER-windows-amd64.zip"
+          Push-Location dist
+          Get-FileHash *-setup-windows-amd64.exe, *-windows-amd64.zip -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  $((Get-Item $_.Path).Name)" } |
+            Out-File -FilePath SHA256SUMS-windows.txt -Encoding ascii
+          Pop-Location
+          Get-ChildItem dist
+
+      - name: Upload to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            dist/*-setup-windows-amd64.exe
+            dist/*.zip
+            dist/SHA256SUMS-windows.txt
+          fail_on_unmatched_files: true
+
+      - name: Upload artifacts (manual run)
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: codryn-desktop-${{ env.VER }}-windows
+          path: |
+            dist/*-setup-windows-amd64.exe
+            dist/*.zip
+            dist/SHA256SUMS-windows.txt
