@@ -23,8 +23,10 @@ body:
       placeholder: e.g. Windows 11 amd64, backend spawned locally
     validations:
       required: true
-  - type: image
+  - type: upload
     id: proof
     attributes:
       label: Proof (optional)
       description: Screenshot of timings or profiles, if any.
+    validations:
+      required: false
