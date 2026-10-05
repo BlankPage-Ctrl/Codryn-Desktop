@@ -3,3 +3,5 @@ build/bin/
 backend/smoke-data/
 Frontend.md
 .env
+# Generated at build time from LICENSE for the Inno Setup installer.
+packaging/windows/LICENSE.txt

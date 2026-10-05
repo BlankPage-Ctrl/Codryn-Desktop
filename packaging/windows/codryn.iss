@@ -5,14 +5,20 @@
 ;   into a Start Menu installer. No Wails `-nsis` involved.
 ;
 ; Build from the repo root (Codryn-Desktop/).
+; The MIT license page is generated from ..\..\LICENSE (Inno requires a
+; .txt/.rtf extension and ours is extensionless):
+;   $t = ((Get-Content -Raw LICENSE) -replace '(?<!\r)\n', "`r`n").TrimEnd("`r","`n") + "`r`n"
+;   Set-Content packaging\windows\LICENSE.txt $t -Encoding ascii -NoNewline
 ; Dev (fallback 0.0.0-dev, no env needed):
 ;   wails build
+;   <generate LICENSE.txt as above>
 ;   iscc packaging\windows\codryn.iss
 ; Release (single version source, leading "v" stripped by internal/version):
 ;   $env:CODRYN_VERSION = 'v1.2.3'
 ;   go run ./packaging/tools/version --sync-wails-json
 ;   wails build
 ;   $ver = go run ./packaging/tools/version
+;   <generate LICENSE.txt as above>
 ;   iscc /DAppVersion=$ver packaging\windows\codryn.iss
 ; AppVersion defaults to 0.0.0-dev for local builds.
 ;
@@ -22,6 +28,12 @@
 
 #ifndef AppVersion
   #define AppVersion "0.0.0-dev"
+#endif
+
+; LICENSE.txt is generated at build time from ..\..\LICENSE (see above).
+; Guarded so local builds without it still compile, just without a license page.
+#if FileExists(SourcePath + "LICENSE.txt")
+  #define HasLicenseFile
 #endif
 
 [Setup]
@@ -45,8 +57,9 @@ OutputBaseFilename=codryn-desktop-{#AppVersion}-setup-windows-amd64
 SetupIconFile=..\..\build\windows\icon.ico
 UninstallDisplayIcon={app}\codryn-desktop.exe
 UninstallDisplayName=Codryn
-; NOTE: ..\..\LICENSE is intentionally not referenced as LicenseFile because
-; Inno requires a .txt/.rtf extension and ours is extensionless.
+#ifdef HasLicenseFile
+LicenseFile=LICENSE.txt
+#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

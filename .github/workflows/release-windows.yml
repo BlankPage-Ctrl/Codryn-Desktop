@@ -59,6 +59,12 @@ jobs:
         shell: pwsh
         run: wails build -clean -ldflags "-X codryn/desktop/internal/version.Version=$env:VER"
 
+      - name: Generate LICENSE.txt for installer
+        shell: pwsh
+        run: |
+          $t = ((Get-Content -Raw LICENSE) -replace '(?<!\r)\n', "`r`n").TrimEnd("`r","`n") + "`r`n"
+          Set-Content packaging\windows\LICENSE.txt $t -Encoding ascii -NoNewline
+
       - name: Package (Inno Setup + portable zip)
         shell: pwsh
         run: |
