@@ -3,12 +3,17 @@ package backend
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
 func TestNewManagerFromEnvFindsCodrynOnPath(t *testing.T) {
 	dir := t.TempDir()
-	fake := filepath.Join(dir, "codryn")
+	name := "codryn"
+	if runtime.GOOS == "windows" {
+		name += ".exe"
+	}
+	fake := filepath.Join(dir, name)
 	if err := os.WriteFile(fake, []byte("#!/bin/sh\nexit 0\n"), 0o755); err != nil {
 		t.Fatalf("write fake codryn: %v", err)
 	}
