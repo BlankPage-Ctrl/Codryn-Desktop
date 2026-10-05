@@ -59,7 +59,7 @@ jobs:
           echo "CODRYN_VERSION=$TAG" >> "$GITHUB_ENV"
 
       - name: Build (wails)
-        run: wails build -clean -ldflags "-X codryn/desktop/internal/version.Version=${VER}"
+        run: wails build -clean -tags webkit2_41 -ldflags "-X codryn/desktop/internal/version.Version=${VER}"
 
       - name: Package (.deb + portable tarball)
         run: |
