@@ -19,12 +19,15 @@ powershell -c "irm https://raw.githubusercontent.com/BlankPage-Ctrl/Codryn/maste
 ```bash
 curl -fsSL https://raw.githubusercontent.com/BlankPage-Ctrl/Codryn/master/installs/install.sh | bash
 ```
+
+To get started after installation, read [docs/getting-started.md](docs/getting-started.md#open-codryn)
+
 > [!WARNING]
 > The installation above includes the Backend.
 
 ## About
 
-This is the desktop client of the Codryn application. Since this is still in the **Beta** stage, certain features and support have been scaled back; however, you can contribute to expanding that support—whether by submitting **Issues** to report bugs, performance problems, or other matters.
+This is the desktop client of the Codryn application. Since this is still in the **Beta** stage, certain features and support have been scaled back, many things and features are not wired at all.; however, you can contribute to expanding that support—whether by submitting **Issues** to report bugs, performance problems, or other matters.
 
 ## Contributing
 

@@ -79,3 +79,8 @@ go vet ./...
 test -z "$(gofmt -l .)"
 go test ./...
 ```
+
+
+> [!NOTE]
+> Unlike the Codryn backend, Codryn Desktop allows pull requests opened directly by AI accounts. AI may open, create, and post PRs here. The human owner or forker is still expected to review the result, and an `Assisted by AI` or `Written by AI` note in the PR footer is welcome but optional.
+
