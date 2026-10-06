@@ -64,6 +64,7 @@ jobs:
       - name: Package (.deb + portable tarball)
         run: |
           mkdir -p dist
+          test -n "${VER}" || { echo "VER is empty, refusing to package"; exit 1; }
           VERSION="${VER}" nfpm package --config packaging/nfpm.yaml --packager deb --target dist/
           tar -czf "dist/codryn-desktop-${VER}-linux-amd64.tar.gz" -C build/bin codryn-desktop
           ( cd dist && sha256sum *.deb *.tar.gz > SHA256SUMS-linux.txt )

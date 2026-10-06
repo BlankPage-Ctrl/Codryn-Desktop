@@ -1,7 +1,8 @@
 # nfpm config for the Codryn desktop Linux .deb (system-wide install).
 # Run from Codryn-Desktop/ so the relative src paths below resolve:
-#   Dev (fallback 0.0.0, no env needed):
-#     nfpm package --config packaging/nfpm.yaml --packager deb --target dist/
+#   Dev:
+#     VERSION=0.0.0 go run ./packaging/tools/version # prints resolved version
+#     VERSION=0.0.0 nfpm package --config packaging/nfpm.yaml --packager deb --target dist/
 #   Release (single version source, leading "v" stripped by internal/version):
 #     VERSION=$(CODRYN_VERSION=v1.2.3 go run ./packaging/tools/version) nfpm package --config packaging/nfpm.yaml --packager deb --target dist/
 # VERSION is normalized semver without a leading "v".
@@ -9,7 +10,7 @@
 name: codryn-desktop
 arch: amd64
 platform: linux
-version: ${VERSION:-0.0.0}
+version: "${VERSION}"
 release: "1"
 section: utils
 priority: optional
