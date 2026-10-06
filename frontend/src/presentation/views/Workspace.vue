@@ -2,7 +2,15 @@
 <script setup lang="ts">
 import { reactive, ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Album, EmojiPuzzled, ChatBubbleEmpty, Folder, Notes, Plus, Settings as SettingsIcon } from '@iconoir/vue'
+import {
+    Album,
+    EmojiPuzzled,
+    ChatBubbleEmpty,
+    Folder,
+    Notes,
+    Plus,
+    Settings as SettingsIcon,
+} from '@iconoir/vue'
 import { useDialog } from '@/presentation/composables/useDialog'
 import { AppList } from '@/presentation/components/list'
 import {
