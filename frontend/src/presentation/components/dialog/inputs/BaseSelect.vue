@@ -20,7 +20,7 @@ type Props = {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    placeholder: 'Pilih opsi...',
+    placeholder: 'Select your option...',
     required: false,
     disabled: false,
     dense: false,

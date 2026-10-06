@@ -97,11 +97,19 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) connectBackend(ctx context.Context) {
 	_ = godotenv.Load()
 
+	if wd, err := os.Getwd(); err == nil {
+		fmt.Fprintf(os.Stderr, "[backend] cwd=%s\n", wd)
+	} else {
+		fmt.Fprintf(os.Stderr, "[backend] cwd unknown: %v\n", err)
+	}
+
 	if os.Getenv("USE_MOCK") == "true" {
+		fmt.Fprintf(os.Stderr, "[backend] transport=mock\n")
 		mockapi.EnableMock(a.Client)
 		return
 	}
-	if os.Getenv("BACKEND_URL") != "" {
+	if url := os.Getenv("BACKEND_URL"); url != "" {
+		fmt.Fprintf(os.Stderr, "[backend] transport=http url=%s\n", url)
 		a.Client.SetTransport(client.New().Transport())
 		return
 	}
@@ -110,6 +118,7 @@ func (a *App) connectBackend(ctx context.Context) {
 		a.reportBackendError(ctx, err)
 		return
 	}
+	fmt.Fprintf(os.Stderr, "[backend] transport=stdio bin=%s\n", mgr.Bin())
 	mgr.SetLogFile(filepath.Join(logDir(), "backend.log"))
 	transport, err := mgr.Start()
 	if err != nil {

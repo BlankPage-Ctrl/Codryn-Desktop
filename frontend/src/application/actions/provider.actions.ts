@@ -32,8 +32,8 @@ export function createProviderActions(
     businessLogic: ProviderBusinessLogic,
 ): ProviderActions {
     async function fetchProviders(): Promise<void> {
-        storeLogic.beginLoad()
         try {
+            storeLogic.beginLoad()
             storeLogic.setProviders(await businessLogic.listProviders())
         } catch (e: unknown) {
             storeLogic.setError(toMessage(e) || 'Failed to load providers')

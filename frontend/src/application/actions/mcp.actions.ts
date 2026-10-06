@@ -13,8 +13,8 @@ export function createMcpActions(
     businessLogic: McpBusinessLogic,
 ): McpActions {
     async function load(workspaceId: string): Promise<void> {
-        storeLogic.beginLoad()
         try {
+            storeLogic.beginLoad()
             const list = await businessLogic.list(workspaceId)
             storeLogic.endLoad(list.servers, list.source)
         } catch (e: unknown) {

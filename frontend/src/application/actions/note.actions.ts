@@ -27,8 +27,8 @@ export function createNoteActions(
     businessLogic: NoteBusinessLogic,
 ): NoteActions {
     async function fetchNotes(workspaceId: string): Promise<void> {
-        storeLogic.beginLoad()
         try {
+            storeLogic.beginLoad()
             storeLogic.setNotes(await businessLogic.list(workspaceId))
         } catch (e: unknown) {
             storeLogic.setError(toMessage(e) || 'Failed to load notes')

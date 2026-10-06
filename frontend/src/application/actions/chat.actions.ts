@@ -15,8 +15,8 @@ export function createChatActions(
     businessLogic: ChatBusinessLogic,
 ): ChatActions {
     async function fetchChats(workspaceId: string): Promise<void> {
-        storeLogic.beginLoad()
         try {
+            storeLogic.beginLoad()
             storeLogic.setChats(await businessLogic.list(workspaceId))
         } catch (e: unknown) {
             storeLogic.setError(toMessage(e) || 'Failed to load chats')
