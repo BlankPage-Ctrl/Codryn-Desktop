@@ -3,9 +3,26 @@ package client
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"strings"
 	"testing"
 )
+
+func TestNilTransportReturnsCleanError(t *testing.T) {
+	c := NewWithTransport(nil)
+	if _, err := c.Do("GET", "/workspaces", nil, nil); !errors.Is(err, ErrNoTransport) {
+		t.Fatalf("Do err = %v, want ErrNoTransport", err)
+	}
+	if _, err := c.DoStream("GET", "/workspaces", nil, nil); !errors.Is(err, ErrNoTransport) {
+		t.Fatalf("DoStream err = %v, want ErrNoTransport", err)
+	}
+	if _, err := c.OpenStream("GET", "/workspaces", nil, nil); !errors.Is(err, ErrNoTransport) {
+		t.Fatalf("OpenStream err = %v, want ErrNoTransport", err)
+	}
+	if _, err := DoOK[[]string](c, "GET", "/workspaces", nil, nil); !errors.Is(err, ErrNoTransport) {
+		t.Fatalf("DoOK err = %v, want ErrNoTransport wrapped", err)
+	}
+}
 
 func TestSortQueryString(t *testing.T) {
 	tests := []struct {

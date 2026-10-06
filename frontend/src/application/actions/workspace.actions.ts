@@ -16,10 +16,14 @@ export function createWorkspaceActions(
     businessLogic: WorkspaceBusinessLogic,
 ): WorkspaceActions {
     async function fetchWorkspaces(): Promise<void> {
-        storeLogic.beginLoad()
         try {
-            storeLogic.setWorkspaces(await businessLogic.list())
+            storeLogic.beginLoad()
+            console.debug('[workspaces] fetch start')
+            const list = await businessLogic.list()
+            console.debug(`[workspaces] fetch ok: ${list.length}`)
+            storeLogic.setWorkspaces(list)
         } catch (e: unknown) {
+            console.error('[workspaces] fetch failed', e)
             storeLogic.setError(toMessage(e) || 'Failed to load workspaces')
         } finally {
             storeLogic.endLoad()

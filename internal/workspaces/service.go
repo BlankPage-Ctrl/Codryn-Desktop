@@ -1,6 +1,11 @@
 package workspaces
 
-import "codryn/desktop/internal/client"
+import (
+	"fmt"
+	"os"
+
+	"codryn/desktop/internal/client"
+)
 
 type Workspace struct {
 	ID          string  `json:"id"`
@@ -26,7 +31,14 @@ func NewService(c *client.Client) *Service {
 }
 
 func (s *Service) List() ([]Workspace, error) {
-	return client.DoOK[[]Workspace](s.c, "GET", "/workspaces", nil, nil)
+	ws, err := client.DoOK[[]Workspace](s.c, "GET", "/workspaces", nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	// Dev context only: proves the round trip delivered rows instead of
+	// silently resolving empty. Never logs row contents.
+	fmt.Fprintf(os.Stderr, "[workspaces] list returned %d\n", len(ws))
+	return ws, nil
 }
 
 func (s *Service) Get(id string) (Workspace, error) {

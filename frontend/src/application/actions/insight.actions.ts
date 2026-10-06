@@ -26,8 +26,8 @@ export function createInsightActions(
     async function ensureOnSelect(workspaceId: string | null): Promise<void> {
         storeLogic.selectWorkspace(workspaceId)
         if (!workspaceId) return
-        storeLogic.beginLoad()
         try {
+            storeLogic.beginLoad()
             await businessLogic.ensure(workspaceId)
             storeLogic.setRunning(true)
             storeLogic.setEnabled(true)
@@ -108,8 +108,8 @@ export function createInsightActions(
             }
             return
         }
-        storeLogic.beginLoad()
         try {
+            storeLogic.beginLoad()
             await businessLogic.setEnabled(workspaceId, true)
         } catch (e: unknown) {
             storeLogic.setEnabled(false)
