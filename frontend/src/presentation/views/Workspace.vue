@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Album, ChatBubbleEmpty, Folder, Notes, Plus, Settings as SettingsIcon } from '@iconoir/vue'
+import { Album, EmojiPuzzled, Folder, Notes, Plus, Settings as SettingsIcon } from '@iconoir/vue'
 import { useDialog } from '@/presentation/composables/useDialog'
 import { AppList } from '@/presentation/components/list'
 import {
@@ -1150,12 +1150,12 @@ onUnmounted(() => {
                         />
                         <div v-if="!openChatIds.length" class="ws-content__empty">
                             <div class="ws-empty__icon">
-                                <ChatBubbleEmpty width="48" height="48" style="opacity: 0.3" />
+                                <EmojiPuzzled width="48" height="48" style="opacity: 0.3" />
                             </div>
                             <h2 class="ws-empty__title">
-                                Just Select something on the sidebar atp ✌🏻🥹.
+                                Select something on the left to get started.
                             </h2>
-                            <p class="ws-empty__desc">What will you have after 500 years!?.</p>
+                            <p class="ws-empty__desc">You can create a new chat by hovering Chat button over the sidebar and clicking the "+" button.</p>
                         </div>
                     </div>
                 </div>

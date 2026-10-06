@@ -33,7 +33,6 @@ flowchart LR
 - **Views are smart.** They compose components, call actions, and pass data down as props. Views handle layout; visual design belongs to components.
 - **Writes go through actions.** Nothing in `presentation/` writes to stores or state directly, except a component-local `store/` inside its own folder for ephemeral UI state (open, hover, filter). That store is private: never exported, never imported from outside the component.
 - **Styling split.** Views use Tailwind CSS. Components use pure scoped CSS, no Tailwind.
-- **Naming.** Never call a domain `DynamicSomething` (no `DynamicList`, no `DynamicButton`). Name things after what they are.
 
 ## Go side
 
