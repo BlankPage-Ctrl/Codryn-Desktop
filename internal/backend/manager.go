@@ -228,6 +228,11 @@ func isExecutableFile(path string) bool {
 	return info.Mode()&0o111 != 0
 }
 
+// Bin returns the resolved backend executable path.
+func (m *Manager) Bin() string {
+	return m.bin
+}
+
 // SetLogFile makes the backend write its stderr logs to the given path.
 func (m *Manager) SetLogFile(path string) {
 	m.cfg.LogFile = path

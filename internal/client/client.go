@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,6 +15,11 @@ const DefaultClientID = "default-client"
 const DefaultSecretKey = "default-01KY288BNYMXFXEK5GF3N82MT8"
 
 const RequestIDHeader = "X-Request-Id"
+
+// ErrNoTransport is returned when no backend transport is wired, e.g. the
+// backend CLI was not found and spawning was skipped. Calls fail with this
+// clean error instead of panicking on a nil transport.
+var ErrNoTransport = errors.New("client: backend not connected")
 
 type Client struct {
 	transport Transport
@@ -40,14 +46,23 @@ func (c *Client) Transport() Transport {
 }
 
 func (c *Client) Do(method, path string, body any, queryParams map[string]string) (*http.Response, error) {
+	if c.transport == nil {
+		return nil, ErrNoTransport
+	}
 	return c.transport.Do(method, path, body, queryParams)
 }
 
 func (c *Client) DoStream(method, path string, body any, queryParams map[string]string) (*http.Response, error) {
+	if c.transport == nil {
+		return nil, ErrNoTransport
+	}
 	return c.transport.DoStream(method, path, body, queryParams)
 }
 
 func (c *Client) OpenStream(method, path string, body any, queryParams map[string]string) (StreamReader, error) {
+	if c.transport == nil {
+		return nil, ErrNoTransport
+	}
 	return c.transport.OpenStream(method, path, body, queryParams)
 }
 

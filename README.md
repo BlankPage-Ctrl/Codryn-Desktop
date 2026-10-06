@@ -27,7 +27,12 @@ To get started after installation, read [docs/getting-started.md](docs/getting-s
 
 ## About
 
-This is the desktop client of the Codryn application. Since this is still in the **Beta** stage, certain features and support have been scaled back, many things and features are not wired at all.; however, you can contribute to expanding that support—whether by submitting **Issues** to report bugs, performance problems, or other matters.
+Codryn is a tool that allows you to use AI to help you write code. It can read your code, understand it, and provide suggestions, explanations, and even generate new code based on your existing codebase.
+
+If you come across a bug, performance issue, missing feature, or anything that could be improved, feel free to open an **Issue** and let us know. Your feedback and contributions can help us expand support and make Codryn better!
+
+> [!NOTE]
+> This is the desktop client component of the Codryn application. Since Codryn is still in **Beta**, some features and support are still being developed.
 
 ## Contributing
 
