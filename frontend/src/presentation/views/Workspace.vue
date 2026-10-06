@@ -1155,7 +1155,10 @@ onUnmounted(() => {
                             <h2 class="ws-empty__title">
                                 Select something on the left to get started.
                             </h2>
-                            <p class="ws-empty__desc">You can create a new chat by hovering Chat button over the sidebar and clicking the "+" button.</p>
+                            <p class="ws-empty__desc">
+                                You can create a new chat by hovering Chat button over the sidebar
+                                and clicking the "+" button.
+                            </p>
                         </div>
                     </div>
                 </div>
