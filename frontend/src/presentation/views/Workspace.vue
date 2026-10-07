@@ -40,6 +40,7 @@ import {
     mcpActions,
 } from '@/application/actions'
 import type { Chat, ChatMode, Note, RevertPreviewState } from '@/core/entities'
+import type { FEInsightSearchHit } from '@/core/entities'
 import { APPEARANCE_PRESETS } from '@/core/entities'
 import type { AttachedImage } from '@/presentation/components/chat/types/attachment'
 import { MAX_IMAGES_PER_MESSAGE } from '@/presentation/components/chat/types/attachment'
@@ -75,7 +76,10 @@ import {
     createWorkspaceLayout,
     createSettingsTabSchema,
 } from '@/presentation/schemas'
-import { createMentionItemsFromFiles } from '@/presentation/schemas/mention'
+import {
+    createMentionItemsFromFiles,
+    createMentionItemsFromSymbols,
+} from '@/presentation/schemas/mention'
 
 const SETTINGS_TAB_ID = '__settings__'
 
@@ -108,6 +112,7 @@ const hitlStorer = useHitlStorer()
 
 const mentionQuery = ref('')
 const mentionLoading = ref(false)
+const symbolHits = ref<FEInsightSearchHit[]>([])
 
 // Revert-message drafts, keyed by chat. Set by beginEdit (runs keep going),
 // cleared by Cancel or by Send (which cancels the live run and restarts).
@@ -200,26 +205,38 @@ function withUploadTimeout<T>(promise: Promise<T>): Promise<T> {
     })
 }
 
-const mentionItems = computed(() =>
-    createMentionItemsFromFiles({
+const mentionItems = computed(() => [
+    ...createMentionItemsFromFiles({
         query: mentionQuery.value,
         nodes: fileExplorerStorer.searchResults,
         workspaceRoot: fileExplorerStorer.workspaceRoot,
         maxResults: 12,
     }),
-)
+    ...createMentionItemsFromSymbols({
+        hits: symbolHits.value,
+        maxResults: 8,
+    }),
+])
 
 async function onMentionSearch(query: string) {
     mentionQuery.value = query
     if (!query.trim()) {
         fileExplorerStorer.setSearchResults([])
+        symbolHits.value = []
         return
     }
+    const wsId = workspaceId.value
+    const searchSymbols = query.trim().length >= 2 && wsId
+    const symbolPromise = searchSymbols
+        ? insightActions.search(wsId, { query: query.trim(), mode: 'auto', limit: 8 })
+        : Promise.resolve(null)
     mentionLoading.value = true
     try {
         await fileExplorerActions.searchFiles(query)
+        const res = await symbolPromise
+        if (mentionQuery.value === query) symbolHits.value = res?.hits ?? []
     } finally {
-        mentionLoading.value = false
+        if (mentionQuery.value === query) mentionLoading.value = false
     }
 }
 

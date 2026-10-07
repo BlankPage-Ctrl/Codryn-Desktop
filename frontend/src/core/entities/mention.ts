@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 
-export type MentionKind = 'file' | 'folder'
+export type MentionKind = 'file' | 'folder' | 'symbol'
 
 export interface MentionItem<TMeta = unknown> {
     id: string
@@ -24,7 +24,21 @@ export interface FolderMentionMeta {
     isDirectory: true
 }
 
-export type AnyMentionMeta = FileMentionMeta | FolderMentionMeta | Record<string, unknown>
+export interface SymbolMentionMeta {
+    id: string
+    name: string
+    qualifiedName?: string
+    kind: string
+    filePath: string
+    lineStart: number
+    lineEnd: number
+}
+
+export type AnyMentionMeta =
+    | FileMentionMeta
+    | FolderMentionMeta
+    | SymbolMentionMeta
+    | Record<string, unknown>
 
 export interface MentionTriggerRange {
     start: number

@@ -1,7 +1,8 @@
 import { resolveFileIconComponent } from '@/presentation/composables/useFileIcon'
 import { dirname } from '@/shared/utils/path.utils'
 import { buildInsertText } from '@/shared/utils/mention.utils'
-import type { MentionItem } from '@/core/entities/mention'
+import type { MentionItem, MentionKind, SymbolMentionMeta } from '@/core/entities/mention'
+import type { FEInsightSearchHit } from '@/core/entities/insight'
 import type { FEFileNode } from '@/core/entities/file'
 
 export interface CreateMentionItemsParams {
@@ -50,12 +51,49 @@ export function createMentionItemsFromFiles(params: CreateMentionItemsParams): M
     })
 }
 
+export interface CreateMentionSymbolItemsParams {
+    hits: FEInsightSearchHit[]
+    maxResults?: number
+}
+
+export function createMentionItemsFromSymbols(
+    params: CreateMentionSymbolItemsParams,
+): MentionItem[] {
+    const limit = params.maxResults ?? 8
+
+    return params.hits.slice(0, limit).map((hit) => {
+        const lineStart = hit.lineRange?.start ?? 0
+        const lineEnd = hit.lineRange?.end ?? 0
+        const qualified = hit.qualifiedName || hit.name
+        const where = `${hit.filePath}:${lineStart}-${lineEnd}`
+        const meta: SymbolMentionMeta = {
+            id: hit.id,
+            name: hit.name,
+            qualifiedName: qualified,
+            kind: hit.kind,
+            filePath: hit.filePath,
+            lineStart,
+            lineEnd,
+        }
+        return {
+            id: `symbol:${hit.id}`,
+            kind: 'symbol',
+            label: hit.name || qualified,
+            description: `${qualified} - ${where}`,
+            title: where,
+            icon: resolveFileIconComponent(hit.filePath, false),
+            meta,
+            insertText: buildInsertText('symbol', hit.id),
+        } satisfies MentionItem
+    })
+}
+
 export function createMentionItems<T>(
     raw: Array<{
         id: string
         label: string
         description?: string
-        kind: 'file' | 'folder'
+        kind: MentionKind
         meta: T
         insertText: string
         icon?: MentionItem['icon']

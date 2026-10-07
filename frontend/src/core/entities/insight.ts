@@ -3,9 +3,11 @@ export type FEInsightSearchMode = 'auto' | 'exact' | 'prefix' | 'substring' | 'f
 export interface FEInsightSearchHit {
     id: string
     name: string
+    qualifiedName?: string
     kind: string
     filePath: string
     lineRange: { start: number; end: number }
+    signature?: string
 }
 
 export interface FEInsightSearchResult {

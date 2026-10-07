@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onBeforeUnmount } from 'vue'
-import type { MentionItem } from '@/core/entities/mention'
+import type { MentionItem, SymbolMentionMeta } from '@/core/entities/mention'
 
 const props = defineProps<{
     item: MentionItem
@@ -11,7 +11,14 @@ const emit = defineEmits<{
     (e: 'click', item: MentionItem): void
 }>()
 
-const kindLabel = computed(() => (props.item.kind === 'folder' ? 'dir' : 'file'))
+const kindLabel = computed(() => {
+    if (props.item.kind === 'folder') return 'dir'
+    if (props.item.kind === 'symbol') {
+        const meta = props.item.meta as Partial<SymbolMentionMeta> | null
+        return meta?.kind || 'symbol'
+    }
+    return 'file'
+})
 
 const fullText = computed(() => {
     if (props.item.description) return `${props.item.label} - ${props.item.description}`

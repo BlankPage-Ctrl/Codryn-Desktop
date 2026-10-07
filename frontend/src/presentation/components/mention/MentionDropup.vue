@@ -2,29 +2,59 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useFloating, offset, flip, shift, size, autoUpdate } from '@floating-ui/vue'
 import type { MentionSchema } from './types/mention.types'
+import type { MentionItem, SymbolMentionMeta } from '@/core/entities/mention'
 import { resolveMentionSchema } from './resolver/resolveMentionSchema'
 import MentionList from './components/MentionList.vue'
 
 const props = defineProps<{ schema: MentionSchema }>()
 const emit = defineEmits<{
-    (e: 'select', item: import('@/core/entities/mention').MentionItem): void
+    (e: 'select', item: MentionItem): void
     (e: 'close'): void
     (e: 'navigate', index: number): void
 }>()
 
 const resolved = computed(() => resolveMentionSchema(props.schema))
 
-const activeFilter = ref<'all' | 'file' | 'folder'>('all')
+function mentionFilterKey(item: MentionItem): string {
+    if (item.kind === 'symbol') {
+        const meta = item.meta as Partial<SymbolMentionMeta> | null
+        const sub = meta?.kind?.trim()
+        return sub ? sub : 'symbol'
+    }
+    return item.kind
+}
+
+function formatFilterLabel(key: string): string {
+    if (key === 'file') return 'File'
+    if (key === 'folder') return 'Directory'
+    return key
+        .split('-')
+        .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1) : part))
+        .join(' ')
+}
+
+// Filter chips follow the keys actually present in the results, in
+// first-seen order. No hardcoded kind list.
+const availableFilters = computed<string[]>(() => {
+    const seen: string[] = []
+    for (const item of resolved.value.items) {
+        const key = mentionFilterKey(item)
+        if (!seen.includes(key)) seen.push(key)
+    }
+    return seen
+})
+
+const activeFilter = ref<string>('all')
 
 const filteredItems = computed(() => {
     const items = resolved.value.items
     if (activeFilter.value === 'all') return items
-    return items.filter((it) => it.kind === activeFilter.value)
+    return items.filter((it) => mentionFilterKey(it) === activeFilter.value)
 })
 
-function setFilter(kind: 'file' | 'folder') {
-    if (activeFilter.value === kind) activeFilter.value = 'all'
-    else activeFilter.value = kind
+function setFilter(key: string) {
+    if (activeFilter.value === key) activeFilter.value = 'all'
+    else activeFilter.value = key
     if (resolved.value.activeIndex !== 0) emit('navigate', 0)
 }
 
@@ -34,6 +64,15 @@ watch(
         if (!v) activeFilter.value = 'all'
     },
 )
+
+// The active chip can go stale when results change (e.g. symbols resolve
+// after files). Fall back to unfiltered instead of showing an empty list.
+watch(availableFilters, (keys) => {
+    if (activeFilter.value !== 'all' && !keys.includes(activeFilter.value)) {
+        activeFilter.value = 'all'
+        if (resolved.value.activeIndex !== 0) emit('navigate', 0)
+    }
+})
 
 watch(
     () => filteredItems.value.length,
@@ -62,7 +101,7 @@ const { floatingStyles } = useFloating(referenceEl, floatingEl, {
     open: computed(() => resolved.value.visible),
 })
 
-function onSelect(item: import('@/core/entities/mention').MentionItem) {
+function onSelect(item: MentionItem) {
     emit('select', item)
 }
 
@@ -131,22 +170,15 @@ defineExpose({ referenceEl, handleKeydown })
                 <div class="mention-panel">
                     <div class="mention-filter" role="toolbar" aria-label="Filter by kind">
                         <button
+                            v-for="key in availableFilters"
+                            :key="key"
                             class="mention-filter__btn"
-                            :class="{ 'mention-filter__btn--active': activeFilter === 'file' }"
+                            :class="{ 'mention-filter__btn--active': activeFilter === key }"
                             type="button"
                             @mousedown.prevent
-                            @click="setFilter('file')"
+                            @click="setFilter(key)"
                         >
-                            File
-                        </button>
-                        <button
-                            class="mention-filter__btn"
-                            :class="{ 'mention-filter__btn--active': activeFilter === 'folder' }"
-                            type="button"
-                            @mousedown.prevent
-                            @click="setFilter('folder')"
-                        >
-                            Directory
+                            {{ formatFilterLabel(key) }}
                         </button>
                         <Transition name="mention-filter-spinner">
                             <span

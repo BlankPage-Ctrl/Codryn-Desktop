@@ -69,9 +69,10 @@ export function detectMentionTriggerStrict(
     }
 }
 
-export function buildInsertText(kind: 'file' | 'folder', relativePath: string): string {
-    if (kind === 'folder') return `#folder:${relativePath}`
-    return `#file:${relativePath}`
+export function buildInsertText(kind: 'file' | 'folder' | 'symbol', value: string): string {
+    if (kind === 'folder') return `#folder:${value}`
+    if (kind === 'symbol') return `#symbol:${value}`
+    return `#file:${value}`
 }
 
 export function insertMentionAt(

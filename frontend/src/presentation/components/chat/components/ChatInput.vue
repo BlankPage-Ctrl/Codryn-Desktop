@@ -171,7 +171,7 @@ const mentionSchema = computed(() => ({
     activeIndex: mentionActiveIndex.value,
     loading: props.resolved.mentionLoading ?? false,
     grouped: false,
-    emptyMessage: 'No files found',
+    emptyMessage: 'No matches found',
 }))
 
 let searchDebounce: ReturnType<typeof setTimeout> | null = null
