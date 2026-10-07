@@ -5,6 +5,7 @@ import type {
     MentionTriggerRange,
     Provider,
     ChatMode,
+    ChatTokenUsage,
     RevertPreviewState,
 } from '@/core/entities'
 import type { Chat } from '@/core/entities'
@@ -38,6 +39,7 @@ export interface ChatTabParams {
     onDismissError?: () => void
     revertPreview?: RevertPreviewState | null
     onToggleRestoreFiles?: (enabled: boolean) => void
+    usage?: ChatTokenUsage | null
 }
 
 function toErrorSchema(error: unknown): { message: string; code?: string } | undefined {
@@ -81,6 +83,7 @@ export function createChatTabSchema(params: ChatTabParams): ChatTabSchema {
         onEditMessage: params.onEditMessage,
         revertPreview: params.revertPreview,
         onToggleRestoreFiles: params.onToggleRestoreFiles,
+        usage: params.usage ?? null,
         error: toErrorSchema(params.state.error) ?? null,
         onDismissError: params.onDismissError,
     }

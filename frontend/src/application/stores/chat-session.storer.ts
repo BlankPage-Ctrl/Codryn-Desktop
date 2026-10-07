@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { FeedMessage } from '@/core/entities'
+import type { ChatTokenUsage, FeedMessage } from '@/core/entities'
 import type { ChatSessionStatus } from '@/core/entities'
 
 export interface ChatSessionState {
@@ -9,6 +9,7 @@ export interface ChatSessionState {
     error: Error | undefined
     isLoading: boolean
     activeRunId: string | undefined
+    usage: ChatTokenUsage | null
 }
 
 export function createEmptyChatSessionState(): ChatSessionState {
@@ -18,6 +19,7 @@ export function createEmptyChatSessionState(): ChatSessionState {
         error: undefined,
         isLoading: false,
         activeRunId: undefined,
+        usage: null,
     }
 }
 

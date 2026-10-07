@@ -2,6 +2,7 @@ import type { FeedStreamPort, MessageRepository, RunRepository } from '@/core/re
 import type {
     ChatImageAttachment,
     ChatSessionStatus,
+    ChatTokenUsage,
     FeedEvent,
     FeedMessage,
     RevertFileRestore,
@@ -16,6 +17,7 @@ export interface ChatSessionStatePatch {
     error?: Error | undefined
     isLoading?: boolean
     activeRunId?: string | undefined
+    usage?: ChatTokenUsage | null
 }
 
 export interface ChatSessionDeps {
@@ -32,6 +34,12 @@ export interface SendEditResult {
 
 export interface ChatSessionEngine {
     loadHistory(workspaceId: string, chatId: string): Promise<void>
+    /**
+     * Refreshes the cached token usage for the footer indicator.
+     * Never throws: a failed fetch keeps the previous value so the
+     * indicator simply shows stale data instead of breaking the chat.
+     */
+    fetchUsage(workspaceId: string, chatId: string): Promise<void>
     sendMessage(
         workspaceId: string,
         chatId: string,
@@ -168,6 +176,9 @@ export function createChatSessionEngine(deps: ChatSessionDeps): ChatSessionEngin
             // its own state, so only fill in when still loading.
             deps.onState(chatId, { status: 'ready', isLoading: false, activeRunId: undefined })
         }
+        // The backend persisted the run usage before closing, so refresh
+        // the footer indicator from the source of truth.
+        if (watch) void fetchUsage(watch.workspaceId, chatId)
     }
 
     function attach(workspaceId: string, chatId: string, runId: string, afterSeq: number): void {
@@ -227,10 +238,21 @@ export function createChatSessionEngine(deps: ChatSessionDeps): ChatSessionEngin
             if (target) {
                 attach(workspaceId, chatId, target.runId, 0)
             }
+            await fetchUsage(workspaceId, chatId)
         } catch (e: unknown) {
             deps.onState(chatId, {
                 error: e instanceof Error ? e : new Error('Failed to load messages'),
             })
+        }
+    }
+
+    async function fetchUsage(workspaceId: string, chatId: string): Promise<void> {
+        try {
+            const usage = await deps.messagesRepo.getChatUsage(workspaceId, chatId)
+            deps.onState(chatId, { usage })
+        } catch {
+            // Keep the previous value; the footer indicator stays stale
+            // rather than failing the surrounding chat flow.
         }
     }
 
@@ -423,5 +445,15 @@ export function createChatSessionEngine(deps: ChatSessionDeps): ChatSessionEngin
         loaded.clear()
     }
 
-    return { loadHistory, sendMessage, beginEdit, previewEdit, sendEdit, stop, dispose, clear }
+    return {
+        loadHistory,
+        fetchUsage,
+        sendMessage,
+        beginEdit,
+        previewEdit,
+        sendEdit,
+        stop,
+        dispose,
+        clear,
+    }
 }

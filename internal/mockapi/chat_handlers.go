@@ -102,6 +102,59 @@ func (s *Store) handleGetMessages(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, r, http.StatusOK, events)
 }
 
+// handleGetChatUsage mirrors the backend get.chat-usage action with fixed
+// dummy totals. The mock holds no per-chat ledger, so steps counts every
+// stored mock message.
+func (s *Store) handleGetChatUsage(w http.ResponseWriter, r *http.Request) {
+	wsID := r.PathValue("workspaceId")
+	chatID := r.PathValue("chatId")
+
+	if _, ok := s.Chats.Find(func(c Chat) bool { return c.ID == chatID && c.WorkspaceID == wsID }); !ok {
+		writeError(w, r, http.StatusNotFound, "Chat "+chatID+" not found")
+		return
+	}
+
+	writeJSON(w, r, http.StatusOK, map[string]any{
+		"chatId":       chatID,
+		"inputTokens":  6000,
+		"outputTokens": 2000,
+		"totalTokens":  8000,
+		"steps":        len(s.Messages),
+	})
+}
+
+// handleGetMessageUsage mirrors the backend get.message-usage action with
+// fixed dummy totals for any stored mock message.
+func (s *Store) handleGetMessageUsage(w http.ResponseWriter, r *http.Request) {
+	wsID := r.PathValue("workspaceId")
+	chatID := r.PathValue("chatId")
+	messageID := r.PathValue("messageId")
+
+	if _, ok := s.Chats.Find(func(c Chat) bool { return c.ID == chatID && c.WorkspaceID == wsID }); !ok {
+		writeError(w, r, http.StatusNotFound, "Chat "+chatID+" not found")
+		return
+	}
+
+	found := false
+	for _, m := range s.Messages {
+		if m.ID == messageID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		writeError(w, r, http.StatusNotFound, "Message "+messageID+" not found")
+		return
+	}
+	writeJSON(w, r, http.StatusOK, map[string]any{
+		"messageId":    messageID,
+		"inputTokens":  1500,
+		"outputTokens": 500,
+		"totalTokens":  2000,
+		"steps":        1,
+	})
+}
+
 func (s *Store) handleRevertMessages(w http.ResponseWriter, r *http.Request) {
 	wsID := r.PathValue("workspaceId")
 	chatID := r.PathValue("chatId")

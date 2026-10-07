@@ -1,4 +1,5 @@
 import type {
+    ChatTokenUsage,
     FeedMessage,
     Provider,
     MentionItem,
@@ -52,6 +53,7 @@ export interface ChatTabSchema {
     onDismissError?: () => void
     revertPreview?: RevertPreviewState | null
     onToggleRestoreFiles?: (enabled: boolean) => void
+    usage?: ChatTokenUsage | null
 }
 
 export interface ChatInputSchema {
@@ -77,6 +79,7 @@ export interface ChatInputSchema {
     onCancelEdit?: () => void
     revertPreview?: RevertPreviewState | null
     onToggleRestoreFiles?: (enabled: boolean) => void
+    usage?: ChatTokenUsage | null
 }
 
 export interface MessageBubbleSchema {

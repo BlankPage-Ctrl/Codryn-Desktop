@@ -598,3 +598,39 @@ describe('chat-session image attachments', () => {
         expect(started).toHaveLength(0)
     })
 })
+
+describe('chat-session token usage', () => {
+    function usageHarness(getChatUsage: (ws: string, chat: string) => Promise<unknown>) {
+        const patches: Array<{ chatId: string; patch: ChatSessionStatePatch }> = []
+        const engine = createChatSessionEngine({
+            messagesRepo: { loadHistory: async () => [], getChatUsage } as never,
+            runsRepo: { list: async () => [] } as never,
+            stream: { openStream: () => () => {} } as never,
+            onState: (chatId: string, patch: ChatSessionStatePatch) => {
+                patches.push({ chatId, patch })
+            },
+        })
+        return { engine, patches }
+    }
+
+    it('patches usage after the backend responds', async () => {
+        const usage = {
+            chatId: 'chat-1',
+            inputTokens: 6000,
+            outputTokens: 2000,
+            totalTokens: 8000,
+            steps: 3,
+        }
+        const { engine, patches } = usageHarness(async () => usage)
+        await engine.fetchUsage('ws-1', 'chat-1')
+        expect(patches).toEqual([{ chatId: 'chat-1', patch: { usage } }])
+    })
+
+    it('keeps the previous value when the fetch fails', async () => {
+        const { engine, patches } = usageHarness(async () => {
+            throw new Error('backend down')
+        })
+        await engine.fetchUsage('ws-1', 'chat-1')
+        expect(patches).toEqual([])
+    })
+})

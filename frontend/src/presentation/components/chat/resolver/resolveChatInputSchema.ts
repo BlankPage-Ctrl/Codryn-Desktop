@@ -1,6 +1,26 @@
 import type { ChatInputSchema } from '../types/schema'
-import type { ResolvedChatInput } from '../types/resolved'
+import type { ResolvedChatInput, ResolvedChatUsage } from '../types/resolved'
 import type { DropdownItemConfig } from '@/presentation/components/dropdown/types'
+import { DEFAULT_MAX_INPUT_TOKENS } from '@/core/entities'
+
+function resolveChatUsage(schema: ChatInputSchema): ResolvedChatUsage | null {
+    if (!schema.usage) return null
+    let limit = DEFAULT_MAX_INPUT_TOKENS
+    if (schema.modelId) {
+        for (const provider of schema.providers) {
+            const model = provider.models.find((m) => m.id === schema.modelId)
+            if (model) {
+                if (typeof model.maxInputTokens === 'number' && model.maxInputTokens > 0) {
+                    limit = model.maxInputTokens
+                }
+                break
+            }
+        }
+    }
+    const used = Math.max(0, schema.usage.totalTokens)
+    const percent = Math.min(100, Math.max(0, Math.round((used / limit) * 100)))
+    return { used, limit, percent }
+}
 
 export function resolveChatInputSchema(schema: ChatInputSchema): ResolvedChatInput {
     const modelItems: DropdownItemConfig[] = []
@@ -70,5 +90,6 @@ export function resolveChatInputSchema(schema: ChatInputSchema): ResolvedChatInp
         onCancelEdit: schema.onCancelEdit,
         revertPreview: schema.revertPreview ?? null,
         onToggleRestoreFiles: schema.onToggleRestoreFiles,
+        usage: resolveChatUsage(schema),
     }
 }

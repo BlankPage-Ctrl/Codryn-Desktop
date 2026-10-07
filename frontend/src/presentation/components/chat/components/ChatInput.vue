@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick, watch } from 'vue'
 import {
-    Brain,
     ChatBubbleEmpty,
     Cube,
     EditPencil,
@@ -14,6 +13,7 @@ import {
 import DropdownRoot from '@/presentation/components/dropdown/DropdownRoot.vue'
 import { MentionDropup } from '@/presentation/components/mention'
 import ImageAttacher from './ImageAttacher.vue'
+import TokenDonut from './TokenDonut.vue'
 import type { ResolvedChatInput } from '../types/resolved'
 import type { DropdownItemConfig, StyleConfig } from '@/presentation/components/dropdown/types'
 import type { ChatMode, MentionItem, MentionTriggerRange } from '@/core/entities'
@@ -36,7 +36,8 @@ function selectMode(mode: ChatMode) {
     props.resolved.onChangeMode?.(mode)
 }
 
-const THINKING_LEVELS: { value: string; label: string }[] = [
+const THINKING_OPTIONS: { value: string; label: string }[] = [
+    { value: 'none', label: 'Off' },
     { value: 'default', label: 'Default' },
     { value: 'low', label: 'Low' },
     { value: 'medium', label: 'Medium' },
@@ -249,33 +250,25 @@ watch(
     },
 )
 
-const thinkingEnabled = computed(
-    () =>
-        !!props.resolved.thinkingMode &&
-        props.resolved.thinkingMode !== 'none' &&
-        !!props.resolved.onChangeThinkingMode,
+const currentThinking = computed(() => props.resolved.thinkingMode ?? 'none')
+
+const isThinkingActive = computed(() => currentThinking.value !== 'none')
+
+const thinkingLabel = computed(
+    () => THINKING_OPTIONS.find((o) => o.value === currentThinking.value)?.label ?? 'Off',
 )
 
-const currentLevel = computed(() =>
-    thinkingEnabled.value ? (props.resolved.thinkingMode ?? 'default') : 'default',
-)
-
-const levelItems = computed<DropdownItemConfig<string>[]>(() =>
-    THINKING_LEVELS.map(({ value, label }) => ({
-        id: `lvl-${value}`,
+const thinkingItems = computed<DropdownItemConfig<string>[]>(() =>
+    THINKING_OPTIONS.map(({ value, label }) => ({
+        id: `thinking-${value}`,
         label,
         value,
-        selected: value === currentLevel.value,
+        selected: value === currentThinking.value,
     })),
 )
 
-function toggleThinking() {
-    if (props.resolved.onChangeThinkingMode) {
-        props.resolved.onChangeThinkingMode(thinkingEnabled.value ? 'none' : 'default')
-    }
-}
-
-function onLevelSelect(value: string) {
+function onThinkingSelect(value: string) {
+    if (value === currentThinking.value) return
     props.resolved.onChangeThinkingMode?.(value)
 }
 
@@ -444,46 +437,6 @@ function onModelSelect(value: string) {
         </MentionDropup>
         <div class="input-footer">
             <div class="input-footer__left">
-                <button
-                    class="thinking-toggle"
-                    :class="{ 'thinking-toggle--active': thinkingEnabled }"
-                    :title="thinkingEnabled ? 'Thinking enabled' : 'Thinking disabled'"
-                    @click="toggleThinking"
-                    type="button"
-                >
-                    <Brain width="11" height="11" />
-                    <span>Thinking</span>
-                </button>
-                <DropdownRoot
-                    v-if="thinkingEnabled"
-                    :items="levelItems"
-                    placement="top"
-                    mode="select"
-                    :model-value="currentLevel"
-                    dense
-                    :offset="4"
-                    :width="{ mode: 'match-trigger' }"
-                    :style="modelDropdownStyle"
-                    @select="onLevelSelect"
-                >
-                    <template #trigger="{ isOpen, toggle }">
-                        <button
-                            class="thinking-level"
-                            :class="{ 'thinking-level--open': isOpen }"
-                            @click="toggle"
-                            type="button"
-                        >
-                            <span>{{ currentLevel }}</span>
-                            <NavArrowDown
-                                width="10"
-                                height="10"
-                                stroke-width="2.5"
-                                class="model-selector__chevron"
-                                :class="{ 'model-selector__chevron--open': isOpen }"
-                            />
-                        </button>
-                    </template>
-                </DropdownRoot>
                 <div
                     v-if="resolved.onChangeMode"
                     class="mode-toggle"
@@ -505,6 +458,12 @@ function onModelSelect(value: string) {
                         <span class="mode-toggle__label">{{ m.label }}</span>
                     </button>
                 </div>
+                <TokenDonut
+                    v-if="resolved.usage"
+                    :used="resolved.usage.used"
+                    :limit="resolved.usage.limit"
+                    :percent="resolved.usage.percent"
+                />
             </div>
             <div class="input-footer__right">
                 <DropdownRoot
@@ -528,6 +487,42 @@ function onModelSelect(value: string) {
                         >
                             <Cube width="12" height="12" />
                             <span class="model-selector__label">{{ resolved.selectedLabel }}</span>
+                            <NavArrowDown
+                                width="10"
+                                height="10"
+                                stroke-width="2.5"
+                                class="model-selector__chevron"
+                                :class="{ 'model-selector__chevron--open': isOpen }"
+                            />
+                        </button>
+                    </template>
+                </DropdownRoot>
+                <DropdownRoot
+                    v-if="resolved.onChangeThinkingMode"
+                    :items="thinkingItems"
+                    placement="top"
+                    mode="select"
+                    :model-value="currentThinking"
+                    dense
+                    :offset="4"
+                    :width="{ mode: 'match-trigger' }"
+                    :style="modelDropdownStyle"
+                    @select="onThinkingSelect"
+                >
+                    <template #trigger="{ isOpen, toggle }">
+                        <button
+                            class="thinking-level"
+                            :class="{
+                                'thinking-level--open': isOpen,
+                                'thinking-level--off': !isThinkingActive,
+                            }"
+                            :title="
+                                isThinkingActive ? `Thinking: ${thinkingLabel}` : 'Thinking off'
+                            "
+                            @click="toggle"
+                            type="button"
+                        >
+                            <span>{{ thinkingLabel }}</span>
                             <NavArrowDown
                                 width="10"
                                 height="10"

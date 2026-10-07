@@ -42,6 +42,37 @@ func (s *Service) LoadHistory(workspaceID, chatID string) ([]FeedEvent, error) {
 	return events, nil
 }
 
+// TokenUsageSum mirrors the backend aggregated token usage shape
+// (Codryn src/messages/types/usage.ts). NULL step values arrive as 0.
+type TokenUsageSum struct {
+	InputTokens  int `json:"inputTokens"`
+	OutputTokens int `json:"outputTokens"`
+	TotalTokens  int `json:"totalTokens"`
+	Steps        int `json:"steps"`
+}
+
+// ChatTokenUsage mirrors the backend get.chat-usage result JSON shape.
+type ChatTokenUsage struct {
+	TokenUsageSum
+	ChatID string `json:"chatId"`
+}
+
+// MessageTokenUsage mirrors the backend get.message-usage result JSON shape.
+type MessageTokenUsage struct {
+	TokenUsageSum
+	MessageID string `json:"messageId"`
+}
+
+// GetChatUsage returns aggregated token usage for the whole chat.
+func (s *Service) GetChatUsage(workspaceID, chatID string) (ChatTokenUsage, error) {
+	return client.DoOK[ChatTokenUsage](s.c, "GET", "/workspaces/"+workspaceID+"/chats/"+chatID+"/usage", nil, nil)
+}
+
+// GetMessageUsage returns aggregated token usage for one message.
+func (s *Service) GetMessageUsage(workspaceID, chatID, messageID string) (MessageTokenUsage, error) {
+	return client.DoOK[MessageTokenUsage](s.c, "GET", "/workspaces/"+workspaceID+"/chats/"+chatID+"/messages/"+messageID+"/usage", nil, nil)
+}
+
 // FileRestoreItem mirrors one restored/deleted path in the backend
 // file-revert result (src/fm/types/history.ts FileRestoreItem).
 type FileRestoreItem struct {

@@ -49,6 +49,31 @@ export interface RevertPreview {
 export type RevertPreviewStatus = 'loading' | 'ready' | 'error'
 
 /**
+ * Aggregated token usage for a chat or a single message.
+ * Mirrors the backend TokenUsageSum shape (NULL step values arrive as 0).
+ */
+export interface TokenUsageSum {
+    inputTokens: number
+    outputTokens: number
+    totalTokens: number
+    steps: number
+}
+
+export interface ChatTokenUsage extends TokenUsageSum {
+    chatId: string
+}
+
+export interface MessageTokenUsage extends TokenUsageSum {
+    messageId: string
+}
+
+/**
+ * Fallback context limit used when the active model reports no input
+ * limit. Mirrors the backend DEFAULT_MAX_INPUT_TOKENS (128K).
+ */
+export const DEFAULT_MAX_INPUT_TOKENS = 131072
+
+/**
  * Edit-draft revert preview state for the composer banner. `restoreFiles`
  * is the user-controlled toggle (default true); the banner only shows the
  * toggle while `status === 'ready'` and files are touched.

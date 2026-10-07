@@ -337,6 +337,7 @@ watch(activeChatId, (newId) => {
     const meta = activeMeta.value
     if (newId && newId !== SETTINGS_TAB_ID && meta?.kind === 'chat') {
         chatSessionActions.loadHistory(workspaceId.value, newId)
+        void chatSessionActions.fetchChatUsage(workspaceId.value, newId)
     }
 })
 
@@ -426,6 +427,7 @@ function buildChatTabSchema(chat: Chat): ChatTabSchema {
         },
         state: chatSessionStorer.sessions[chat.id] ?? createEmptyChatSessionState(),
         providers: providerStorer.providers,
+        usage: chatSessionStorer.sessions[chat.id]?.usage ?? null,
         contentWidth: appearanceStorer.contentWidth,
         fontSize: appearanceStorer.fontSize,
         lineHeight: appearanceStorer.lineHeight,

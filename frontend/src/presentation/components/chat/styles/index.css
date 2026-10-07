@@ -130,7 +130,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* margin-top: 4px; */
+    margin-top: 4px;
     padding: 0 2px;
 }
 
@@ -145,6 +145,56 @@
     display: flex;
     align-items: center;
     margin-left: auto;
+}
+
+.token-donut {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 5px;
+    padding: 2px 4px 2px 2px;
+}
+
+.token-donut__ring {
+    display: block;
+}
+
+.token-donut__track {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 3;
+}
+
+.token-donut__fill {
+    fill: none;
+    stroke: var(--text-primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    opacity: 0.8;
+}
+
+.token-donut__percent {
+    font-size: var(--type-xs);
+    line-height: 1.4;
+    color: var(--text-primary);
+    opacity: 0.65;
+}
+
+.token-donut__detail {
+    display: none;
+    font-size: var(--type-xs);
+    line-height: 1.4;
+    color: var(--text-primary);
+    opacity: 0.65;
+    white-space: nowrap;
+}
+
+.input-footer:hover .token-donut__percent {
+    display: none;
+}
+
+.input-footer:hover .token-donut__detail {
+    display: inline;
 }
 
 .mode-toggle {
@@ -222,39 +272,12 @@
     }
 }
 
-.thinking-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 6px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--text-primary);
-    font-size: var(--type-xs);
-    line-height: 1.4;
-    cursor: pointer;
-    transition: all 0.15s;
-    opacity: 0.55;
-}
-.thinking-toggle:hover {
-    background: rgba(var(--raw-border-color), 0.3);
-    border-color: var(--border-color);
-    opacity: 1;
-}
-
-.thinking-toggle--active {
-    border-color: var(--border-color);
-    background: rgba(var(--raw-border-color), 0.3);
-    opacity: 1;
-}
-
 .thinking-level {
     display: inline-flex;
     align-items: center;
     gap: 3px;
     padding: 2px 6px;
-    border: 1px solid var(--border-color);
+    border: 1px solid transparent;
     border-radius: 4px;
     background: transparent;
     color: var(--text-primary);
@@ -265,9 +288,21 @@
     transition: all 0.15s;
 }
 
+.thinking-level--off {
+    background: transparent;
+    border-color: transparent;
+    opacity: 0.55;
+}
+
+.thinking-level--off:hover {
+    border-color: var(--border-color);
+    opacity: 1;
+}
+
 .thinking-level:hover,
 .thinking-level--open {
     background: rgba(var(--raw-border-color), 0.3);
+    border-color: var(--border-color);
 }
 
 .model-selector {

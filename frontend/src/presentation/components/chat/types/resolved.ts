@@ -42,6 +42,12 @@ export interface ResolvedChatTab {
     input: ResolvedChatInput
 }
 
+export interface ResolvedChatUsage {
+    used: number
+    limit: number
+    percent: number
+}
+
 export interface ResolvedChatInput {
     placeholder: string
     disabled: boolean
@@ -54,6 +60,7 @@ export interface ResolvedChatInput {
     mentionItems: MentionItem[]
     mentionLoading: boolean
     attachedImages: AttachedImage[]
+    usage: ResolvedChatUsage | null
     onPickImages?: () => void
     onRemoveImage?: (localId: string) => void
     onSend?: (text: string) => void

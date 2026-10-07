@@ -671,6 +671,26 @@ export namespace mcp {
 
 export namespace messages {
 	
+	export class ChatTokenUsage {
+	    inputTokens: number;
+	    outputTokens: number;
+	    totalTokens: number;
+	    steps: number;
+	    chatId: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ChatTokenUsage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.inputTokens = source["inputTokens"];
+	        this.outputTokens = source["outputTokens"];
+	        this.totalTokens = source["totalTokens"];
+	        this.steps = source["steps"];
+	        this.chatId = source["chatId"];
+	    }
+	}
 	export class FileConflictWriter {
 	    chatId: string;
 	    messageId: string;
@@ -773,6 +793,26 @@ export namespace messages {
 		}
 	}
 	
+	export class MessageTokenUsage {
+	    inputTokens: number;
+	    outputTokens: number;
+	    totalTokens: number;
+	    steps: number;
+	    messageId: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MessageTokenUsage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.inputTokens = source["inputTokens"];
+	        this.outputTokens = source["outputTokens"];
+	        this.totalTokens = source["totalTokens"];
+	        this.steps = source["steps"];
+	        this.messageId = source["messageId"];
+	    }
+	}
 	export class RevertFilePlan {
 	    path: string;
 	    op: string;

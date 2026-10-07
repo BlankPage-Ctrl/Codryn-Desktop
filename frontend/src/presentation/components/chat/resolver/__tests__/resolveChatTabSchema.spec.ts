@@ -85,3 +85,75 @@ describe('resolveChatTabSchema revert preview', () => {
         expect(resolved.input.onToggleRestoreFiles).toBe(onToggleRestoreFiles)
     })
 })
+
+describe('resolveChatTabSchema token usage', () => {
+    it('resolves null usage when absent', () => {
+        const resolved = resolveChatTabSchema(makeSchema())
+        expect(resolved.input.usage).toBeNull()
+    })
+
+    it('derives used, limit and percent from the active model', () => {
+        const resolved = resolveChatTabSchema(
+            makeSchema({
+                modelId: 'model-1',
+                providers: [
+                    {
+                        id: 'provider-1',
+                        name: 'Provider',
+                        type: 'openai',
+                        models: [
+                            {
+                                id: 'model-1',
+                                modelId: 'gpt-4o',
+                                providerId: 'provider-1',
+                                maxInputTokens: 100000,
+                                createdAt: '',
+                                updatedAt: '',
+                            },
+                        ],
+                        createdAt: '',
+                        updatedAt: '',
+                    },
+                ],
+                usage: {
+                    chatId: 'chat-1',
+                    inputTokens: 6000,
+                    outputTokens: 2000,
+                    totalTokens: 8000,
+                    steps: 3,
+                },
+            }),
+        )
+        expect(resolved.input.usage).toEqual({ used: 8000, limit: 100000, percent: 8 })
+    })
+
+    it('falls back to the default limit when the model has none', () => {
+        const resolved = resolveChatTabSchema(
+            makeSchema({
+                usage: {
+                    chatId: 'chat-1',
+                    inputTokens: 65536,
+                    outputTokens: 0,
+                    totalTokens: 65536,
+                    steps: 1,
+                },
+            }),
+        )
+        expect(resolved.input.usage).toEqual({ used: 65536, limit: 131072, percent: 50 })
+    })
+
+    it('clamps percent at 100 when usage exceeds the limit', () => {
+        const resolved = resolveChatTabSchema(
+            makeSchema({
+                usage: {
+                    chatId: 'chat-1',
+                    inputTokens: 200000,
+                    outputTokens: 0,
+                    totalTokens: 200000,
+                    steps: 9,
+                },
+            }),
+        )
+        expect(resolved.input.usage).toEqual({ used: 200000, limit: 131072, percent: 100 })
+    })
+})

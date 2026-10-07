@@ -4,6 +4,7 @@ import type { ChatImageAttachment, RevertPreview } from '@/core/entities'
 
 export interface ChatSessionActions {
     loadHistory(workspaceId: string, chatId: string): Promise<void>
+    fetchChatUsage(workspaceId: string, chatId: string): Promise<void>
     sendMessage(
         workspaceId: string,
         chatId: string,
@@ -35,6 +36,10 @@ export function createChatSessionActions(
 ): ChatSessionActions {
     async function loadHistory(workspaceId: string, chatId: string): Promise<void> {
         await businessLogic.loadHistory(workspaceId, chatId)
+    }
+
+    async function fetchChatUsage(workspaceId: string, chatId: string): Promise<void> {
+        await businessLogic.fetchUsage(workspaceId, chatId)
     }
 
     async function sendMessage(
@@ -88,6 +93,7 @@ export function createChatSessionActions(
 
     return {
         loadHistory,
+        fetchChatUsage,
         sendMessage,
         beginEdit,
         previewEdit,

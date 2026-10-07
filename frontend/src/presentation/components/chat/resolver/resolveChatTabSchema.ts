@@ -56,6 +56,7 @@ export function resolveChatTabSchema(schema: ChatTabSchema): ResolvedChatTab {
             onCancelEdit: schema.onCancelEdit,
             revertPreview: schema.revertPreview,
             onToggleRestoreFiles: schema.onToggleRestoreFiles,
+            usage: schema.usage ?? null,
         }),
     }
 }
