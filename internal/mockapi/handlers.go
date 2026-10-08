@@ -82,6 +82,7 @@ func (s *Store) NewHandler() http.Handler {
 	mux.HandleFunc("GET /workspaces/{workspaceId}/chats", s.handleListChats)
 	mux.HandleFunc("GET /workspaces/{workspaceId}/chats/{id}", s.handleGetChat)
 	mux.HandleFunc("POST /workspaces/{workspaceId}/chats", s.handleCreateChat)
+	mux.HandleFunc("POST /workspaces/{workspaceId}/chats/{id}/title", s.handleGenerateChatTitle)
 	mux.HandleFunc("PATCH /workspaces/{workspaceId}/chats/{id}", s.handleUpdateChat)
 	mux.HandleFunc("DELETE /workspaces/{workspaceId}/chats/{id}", s.handleDeleteChat)
 

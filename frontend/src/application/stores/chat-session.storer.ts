@@ -40,6 +40,15 @@ export const useChatSessionStorer = defineStore('chat-session', () => {
         delete sessions.value[chatId]
     }
 
+    function moveSession(fromId: string, toId: string): void {
+        const current = sessions.value[fromId]
+        if (!current) return
+        if (sessions.value[toId] === undefined) {
+            sessions.value[toId] = current
+        }
+        delete sessions.value[fromId]
+    }
+
     function clearSessions(): void {
         sessions.value = {}
     }
@@ -49,6 +58,7 @@ export const useChatSessionStorer = defineStore('chat-session', () => {
         upsertSession,
         patchSession,
         removeSession,
+        moveSession,
         clearSessions,
     }
 })

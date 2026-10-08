@@ -6,6 +6,8 @@ export function Create(arg1:string,arg2:chats.ChatDto):Promise<chats.Chat>;
 
 export function Delete(arg1:string,arg2:string):Promise<void>;
 
+export function GenerateTitle(arg1:string,arg2:string,arg3:chats.ChatTitleDto):Promise<chats.Chat>;
+
 export function Get(arg1:string,arg2:string):Promise<chats.Chat>;
 
 export function List(arg1:string):Promise<Array<chats.Chat>>;

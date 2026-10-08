@@ -38,6 +38,20 @@ export function useTabs<Key, Meta = undefined>(initial: Key[] = []) {
         }
     }
 
+    function rename(fromId: Key, toId: Key, meta?: Meta): void {
+        const index = order.value.indexOf(fromId)
+        if (index === -1) return
+        order.value.splice(index, 1, toId)
+        const current = meta !== undefined ? meta : metas.get(fromId)
+        metas.delete(fromId)
+        if (current !== undefined) {
+            metas.set(toId, current)
+        }
+        if (activeId.value === fromId) {
+            activeId.value = toId
+        }
+    }
+
     function reset(): void {
         order.value = []
         activeId.value = null
@@ -64,6 +78,7 @@ export function useTabs<Key, Meta = undefined>(initial: Key[] = []) {
         open,
         activate,
         close,
+        rename,
         reset,
     }
 }

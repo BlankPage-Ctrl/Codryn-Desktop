@@ -25,6 +25,8 @@ export interface ChatSessionActions {
         opts?: { restoreFiles?: boolean },
     ): Promise<SendEditResult>
     stop(chatId: string): Promise<void>
+    adoptSession(fromId: string, toId: string): void
+    reportError(chatId: string, message: string): void
     dispose(chatId: string): void
     clear(): void
     dismissError(chatId: string): void
@@ -77,6 +79,18 @@ export function createChatSessionActions(
         await businessLogic.stop(chatId)
     }
 
+    function adoptSession(fromId: string, toId: string): void {
+        storeLogic.rekey(fromId, toId)
+    }
+
+    function reportError(chatId: string, message: string): void {
+        storeLogic.patch(chatId, {
+            error: new Error(message),
+            status: 'error',
+            isLoading: false,
+        })
+    }
+
     function dispose(chatId: string): void {
         businessLogic.dispose(chatId)
         storeLogic.remove(chatId)
@@ -99,6 +113,8 @@ export function createChatSessionActions(
         previewEdit,
         sendEdit,
         stop,
+        adoptSession,
+        reportError,
         dispose,
         clear,
         dismissError,

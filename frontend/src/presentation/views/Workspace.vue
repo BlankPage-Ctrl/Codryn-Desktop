@@ -1,6 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
-import { reactive, ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
     Album,
@@ -16,6 +16,7 @@ import { AppList } from '@/presentation/components/list'
 import {
     useWorkspaceStorer,
     useChatStorer,
+    useComposerStorer,
     useProviderStorer,
     useAppearanceStorer,
     useThemeStorer,
@@ -29,6 +30,7 @@ import {
     workspaceActions,
     attachmentActions,
     chatActions,
+    composerActions,
     providerActions,
     fileExplorerActions,
     appearanceActions,
@@ -42,8 +44,7 @@ import {
 import type { Chat, ChatMode, Note, RevertPreviewState } from '@/core/entities'
 import type { FEInsightSearchHit } from '@/core/entities'
 import { APPEARANCE_PRESETS } from '@/core/entities'
-import type { AttachedImage } from '@/presentation/components/chat/types/attachment'
-import { MAX_IMAGES_PER_MESSAGE } from '@/presentation/components/chat/types/attachment'
+import { isPendingChatId } from '@/shared/utils/chat.utils'
 import ChatTab from '@/presentation/components/chat/ChatTab.vue'
 import type { ChatTabSchema } from '@/presentation/components/chat/types/schema'
 import NotesTab from '@/presentation/components/notes/NotesTab.vue'
@@ -107,6 +108,7 @@ const noteStorer = useNoteStorer()
 const dialog = useDialog()
 const settingsTab = useSettingsTab()
 const chatSessionStorer = useChatSessionStorer()
+const composerStorer = useComposerStorer()
 const fileExplorerStorer = useFileExplorerStorer()
 const hitlStorer = useHitlStorer()
 
@@ -123,87 +125,13 @@ const pendingEdits = ref<Record<string, { messageId: string; text: string }>>({}
 // open - the sendEdit result is authoritative).
 const editPreviews = ref<Record<string, RevertPreviewState>>({})
 
-// Composer image attachments, keyed by chat. Uploaded immediately on pick
-// (pending -> linked flips server-side on send); send is blocked until every
-// item is ready, so a failed upload must be removed or retried first.
-const attachedImagesByChat = ref<Record<string, AttachedImage[]>>({})
-
-function attachedImagesFor(chatId: string): AttachedImage[] {
-    return attachedImagesByChat.value[chatId] ?? []
-}
-
-async function onPickImages(chatId: string) {
-    const wsId = workspaceId.value
-    if (!wsId) return
-    let picked: Array<{
-        filename: string
-        mediaType: string
-        dataBase64: string
-        sizeBytes: number
-    }>
-    try {
-        picked = await attachmentActions.pickImages()
-    } catch {
-        return
-    }
-    if (picked.length === 0) return
-    const list = (attachedImagesByChat.value[chatId] ??= [])
-    for (const p of picked) {
-        if (list.length >= MAX_IMAGES_PER_MESSAGE) break
-        const item = reactive<AttachedImage>({
-            localId: crypto.randomUUID(),
-            filename: p.filename,
-            mediaType: p.mediaType,
-            sizeBytes: p.sizeBytes,
-            previewUrl: `data:${p.mediaType};base64,${p.dataBase64}`,
-            status: 'uploading',
-        })
-        list.push(item)
-        try {
-            const res = await withUploadTimeout(
-                attachmentActions.uploadAttachment(wsId, {
-                    filename: p.filename,
-                    mediaType: p.mediaType,
-                    dataBase64: p.dataBase64,
-                }),
-            )
-            // The composer list may have been cleared (sent) while uploading.
-            if (!attachedImagesByChat.value[chatId]?.includes(item)) continue
-            item.attachmentId = res.attachment.id
-            item.status = 'ready'
-        } catch (e: unknown) {
-            item.status = 'error'
-            item.error = e instanceof Error ? e.message : 'Upload failed'
-        }
-    }
-}
-
-function onRemoveImage(chatId: string, localId: string) {
-    const list = attachedImagesByChat.value[chatId]
-    if (!list) return
-    attachedImagesByChat.value[chatId] = list.filter((img) => img.localId !== localId)
-}
-
-// Bounds an upload so a lost bridge response can never spin forever.
-// Must exceed the Go HTTP client timeout (30s) to avoid racing it.
-const UPLOAD_TIMEOUT_MS = 35000
-
-function withUploadTimeout<T>(promise: Promise<T>): Promise<T> {
-    let timer: ReturnType<typeof setTimeout> | undefined
-    return new Promise<T>((resolve, reject) => {
-        timer = setTimeout(() => reject(new Error('Upload timed out')), UPLOAD_TIMEOUT_MS)
-        promise.then(
-            (value) => {
-                if (timer !== undefined) clearTimeout(timer)
-                resolve(value)
-            },
-            (err: unknown) => {
-                if (timer !== undefined) clearTimeout(timer)
-                reject(err)
-            },
-        )
-    })
-}
+// Transient UI-only flags for the pending-chat commit. Domain state (pending
+// chats, composer attachments, sessions) lives in the application layer and
+// is manipulated through actions, never here.
+const committingPending = ref<Set<string>>(new Set())
+// Real ids adopted this tick: skip the first loadHistory so the replay of an
+// empty history can never wipe the optimistic user message.
+const justCommitted = ref<Set<string>>(new Set())
 
 const mentionItems = computed(() => [
     ...createMentionItemsFromFiles({
@@ -287,6 +215,7 @@ const {
     isOpen,
     open,
     close,
+    rename: renameTab,
     reset,
     getMeta,
 } = useTabs<string, TabMeta>()
@@ -335,10 +264,15 @@ const contentView = computed<ContentView>(() => {
 
 watch(activeChatId, (newId) => {
     const meta = activeMeta.value
-    if (newId && newId !== SETTINGS_TAB_ID && meta?.kind === 'chat') {
-        chatSessionActions.loadHistory(workspaceId.value, newId)
+    if (!newId || newId === SETTINGS_TAB_ID || meta?.kind !== 'chat') return
+    if (isPendingChatId(newId)) return
+    if (justCommitted.value.has(newId)) {
+        justCommitted.value.delete(newId)
         void chatSessionActions.fetchChatUsage(workspaceId.value, newId)
+        return
     }
+    chatSessionActions.loadHistory(workspaceId.value, newId)
+    void chatSessionActions.fetchChatUsage(workspaceId.value, newId)
 })
 
 const WsTabStripSchema = computed<WsTabStripSchema<string>>(() => {
@@ -377,7 +311,17 @@ const WsTabStripSchema = computed<WsTabStripSchema<string>>(() => {
         activeId: activeChatId.value,
         closable: true,
         onSelect: (id) => open(id),
-        onClose: (id) => close(id),
+        onClose: (id) => {
+            if (isPendingChatId(id)) {
+                chatActions.discardPendingChat(id)
+                composerActions.discard(id)
+                chatSessionActions.dispose(id)
+                delete pendingEdits.value[id]
+                delete editPreviews.value[id]
+                committingPending.value.delete(id)
+            }
+            close(id)
+        },
     }
 })
 
@@ -433,9 +377,9 @@ function buildChatTabSchema(chat: Chat): ChatTabSchema {
         lineHeight: appearanceStorer.lineHeight,
         mentionItems: mentionItems.value,
         mentionLoading: mentionLoading.value,
-        attachedImages: attachedImagesFor(chat.id),
-        onPickImages: () => void onPickImages(chat.id),
-        onRemoveImage: (localId) => onRemoveImage(chat.id, localId),
+        attachedImages: composerStorer.attachments[chat.id] ?? [],
+        onPickImages: () => void composerActions.addImages(workspaceId.value, chat.id),
+        onRemoveImage: (localId) => composerActions.removeImage(chat.id, localId),
         draftText: pending?.text,
         revertPreview: editPreviews.value[chat.id] ?? null,
         onToggleRestoreFiles: (enabled: boolean) => {
@@ -458,25 +402,18 @@ function buildChatTabSchema(chat: Chat): ChatTabSchema {
                     })
                 return
             }
+            if (isPendingChatId(chat.id)) {
+                void commitPendingAndSend(chat.id, text)
+                return
+            }
             // Block-all: only ready uploads are sent, and only when nothing
             // is still uploading or failed (the composer disables Send then).
-            const ready = attachedImagesFor(chat.id).filter(
-                (img) => img.status === 'ready' && img.attachmentId,
-            )
-            if (attachedImagesFor(chat.id).length !== ready.length) return
+            const images = composerStorer.attachments[chat.id] ?? []
+            const ready = images.filter((img) => img.status === 'ready' && img.attachmentId)
+            if (images.length !== ready.length) return
             if (!text.trim() && ready.length === 0) return
-            delete attachedImagesByChat.value[chat.id]
-            void chatSessionActions.sendMessage(
-                workspaceId.value,
-                chat.id,
-                text,
-                ready.map((img) => ({
-                    attachmentId: img.attachmentId ?? '',
-                    mediaType: img.mediaType,
-                    filename: img.filename,
-                    previewUrl: img.previewUrl,
-                })),
-            )
+            const payload = composerActions.takeAttachments(chat.id)
+            void chatSessionActions.sendMessage(workspaceId.value, chat.id, text, payload)
         },
         onStop: () => chatSessionActions.stop(chat.id),
         onCancelEdit: () => {
@@ -510,13 +447,63 @@ function buildChatTabSchema(chat: Chat): ChatTabSchema {
 }
 
 function getChatById(chatId: string): Chat | undefined {
-    return chatStorer.chats.find((c) => c.id === chatId)
+    return chatStorer.pending[chatId] ?? chatStorer.chats.find((c) => c.id === chatId)
+}
+
+async function commitPendingAndSend(pendingId: string, text: string): Promise<void> {
+    if (committingPending.value.has(pendingId)) return
+    const wsId = workspaceId.value
+    if (!wsId) return
+    // Block-all: only ready uploads are sent, and only when nothing
+    // is still uploading or failed (the composer disables Send then).
+    const images = composerStorer.attachments[pendingId] ?? []
+    const ready = images.filter((img) => img.status === 'ready' && img.attachmentId)
+    if (images.length !== ready.length) return
+    if (!text.trim() && ready.length === 0) return
+    committingPending.value.add(pendingId)
+    let created: Chat
+    try {
+        // The local draft is reused: the backend record adopts its model,
+        // mode and settings, and the tab keeps its identity via rename.
+        // Wait for the backend response before touching tabs or sessions.
+        created = await chatActions.commitPendingChat(wsId, pendingId)
+    } catch {
+        committingPending.value.delete(pendingId)
+        chatSessionActions.reportError(pendingId, 'Failed to create chat')
+        return
+    }
+    const realId = created.id
+    const payload = composerActions.takeAttachments(pendingId)
+    chatSessionActions.adoptSession(pendingId, realId)
+    justCommitted.value.add(realId)
+    // Seed the optimistic user message synchronously, then rename the tab in
+    // the same tick: the bubble is already in state when the tab remounts,
+    // so there is no empty flash and no history replay to wipe it.
+    void chatSessionActions.sendMessage(wsId, realId, text, payload)
+    renameTab(pendingId, realId, chatTabMeta(realId))
+    committingPending.value.delete(pendingId)
+    // Title is a background job: one backend call that generates, persists
+    // and returns the chat. The message stream is
+    // never blocked or disturbed by it.
+    try {
+        await chatActions.generateAndApplyChatTitle(wsId, realId, {
+            text,
+            ...(created.providerId ? { providerId: created.providerId } : {}),
+            ...(created.modelId ? { modelId: created.modelId } : {}),
+        })
+    } catch {
+        // The backend already persisted a fallback title in this case.
+    }
 }
 
 async function onUpdateChat(
     chatId: string,
     payload: { modelId?: string; providerId?: string; thinkingMode?: string; mode?: ChatMode },
 ) {
+    if (isPendingChatId(chatId)) {
+        chatActions.updatePendingChat(chatId, payload)
+        return
+    }
     try {
         await chatActions.updateChat(workspaceId.value, chatId, payload)
     } catch {
@@ -524,17 +511,17 @@ async function onUpdateChat(
     }
 }
 
-async function openChatCreate() {
-    await dialog.spawn({
-        title: 'New chat',
-        schema: chatFormSchema,
-        confirmLabel: 'Create',
-        submit: async (data) => {
-            await chatActions.createChat(workspaceId.value, {
-                title: String(data.chat!.title ?? ''),
-            })
-        },
+function openChatCreate() {
+    const wsId = workspaceId.value
+    if (!wsId) return
+    const draft = chatActions.openPendingChat(wsId, {
+        ...(providerStorer.defaultProviderId
+            ? { providerId: providerStorer.defaultProviderId }
+            : {}),
+        ...(providerStorer.defaultModelId ? { modelId: providerStorer.defaultModelId } : {}),
     })
+    showPanel('chat')
+    open(draft.id, chatTabMeta(draft.id))
 }
 
 const chatListSchema = computed(() =>
@@ -952,6 +939,10 @@ async function handleDeleteProvider(id: string) {
 }
 
 function cleanupWorkspace() {
+    committingPending.value = new Set()
+    justCommitted.value = new Set()
+    chatActions.clearPendingChats()
+    composerActions.clear()
     chatSessionActions.clear()
     fileExplorerActions.stopWatch()
     flushSaves()

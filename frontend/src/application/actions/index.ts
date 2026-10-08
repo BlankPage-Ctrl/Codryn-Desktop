@@ -1,6 +1,7 @@
 import {
     useWorkspaceStorer,
     useChatStorer,
+    useComposerStorer,
     useProviderStorer,
     useThemeStorer,
     useAppearanceStorer,
@@ -32,6 +33,7 @@ import { fileWatch, createFeedStreamPort, hitlWatch } from '@/data/stream'
 
 import { createWorkspaceStoreLogic } from '../store-logic/workspace.logic'
 import { createChatStoreLogic } from '../store-logic/chat.logic'
+import { createComposerStoreLogic } from '../store-logic/composer.logic'
 import { createProviderStoreLogic } from '../store-logic/provider.logic'
 import { createThemeStoreLogic } from '../store-logic/theme.logic'
 import { createAppearanceStoreLogic } from '../store-logic/appearance.logic'
@@ -56,6 +58,7 @@ import { createMcpBusinessLogic } from '../business-logic/mcp.logic'
 
 import { createWorkspaceActions } from './workspace.actions'
 import { createAttachmentActions } from './attachment.actions'
+import { createComposerActions } from './composer.actions'
 import { createChatActions } from './chat.actions'
 import { createProviderActions } from './provider.actions'
 import { createThemeActions } from './theme.actions'
@@ -73,6 +76,10 @@ const workspaceBusinessLogic = createWorkspaceBusinessLogic(workspacesRepository
 export const workspaceActions = createWorkspaceActions(workspaceStoreLogic, workspaceBusinessLogic)
 
 export const attachmentActions = createAttachmentActions(attachmentsRepository)
+
+const composerStoreLogic = createComposerStoreLogic(() => useComposerStorer())
+
+export const composerActions = createComposerActions(composerStoreLogic, attachmentsRepository)
 
 const chatStoreLogic = createChatStoreLogic(() => useChatStorer())
 const chatBusinessLogic = createChatBusinessLogic(chatsRepository)
@@ -148,6 +155,7 @@ export const mcpActions = createMcpActions(mcpStoreLogic, mcpBusinessLogic)
 
 export type { WorkspaceActions } from './workspace.actions'
 export type { AttachmentActions } from './attachment.actions'
+export type { ComposerActions } from './composer.actions'
 export type { ChatActions } from './chat.actions'
 export type { ProviderActions } from './provider.actions'
 export type { ThemeActions } from './theme.actions'

@@ -1,6 +1,5 @@
 /** Composer-side image attachment state (upload-before-send lifecycle). */
 export type AttachedImageStatus = 'uploading' | 'ready' | 'error'
-
 export interface AttachedImage {
     localId: string
     filename: string
@@ -15,7 +14,7 @@ export interface AttachedImage {
 }
 
 /** Backend limits mirrored from packages/backend/src/attachments. */
-export const MAX_IMAGES_PER_MESSAGE = 5
+export { MAX_COMPOSER_IMAGES_PER_MESSAGE as MAX_IMAGES_PER_MESSAGE } from '@/core/entities'
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
 export const ATTACHMENT_URL_SCHEME = 'attachment://'

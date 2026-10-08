@@ -151,7 +151,7 @@ export namespace chats {
 	    }
 	}
 	export class ChatDto {
-	    title: string;
+	    title?: string;
 	    modelId?: string;
 	    providerId?: string;
 	    systemPrompt?: string;
@@ -170,6 +170,22 @@ export namespace chats {
 	        this.systemPrompt = source["systemPrompt"];
 	        this.thinkingMode = source["thinkingMode"];
 	        this.mode = source["mode"];
+	    }
+	}
+	export class ChatTitleDto {
+	    text: string;
+	    providerId?: string;
+	    modelId?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ChatTitleDto(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.text = source["text"];
+	        this.providerId = source["providerId"];
+	        this.modelId = source["modelId"];
 	    }
 	}
 

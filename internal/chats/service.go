@@ -16,7 +16,7 @@ type Chat struct {
 }
 
 type ChatDto struct {
-	Title        string  `json:"title"`
+	Title        *string `json:"title,omitempty"`
 	ModelID      *string `json:"modelId,omitempty"`
 	ProviderID   *string `json:"providerId,omitempty"`
 	SystemPrompt *string `json:"systemPrompt,omitempty"`
@@ -40,8 +40,18 @@ func (s *Service) Get(workspaceID, chatID string) (Chat, error) {
 	return client.DoOK[Chat](s.c, "GET", "/workspaces/"+workspaceID+"/chats/"+chatID, nil, nil)
 }
 
+type ChatTitleDto struct {
+	Text       string  `json:"text"`
+	ProviderID *string `json:"providerId,omitempty"`
+	ModelID    *string `json:"modelId,omitempty"`
+}
+
 func (s *Service) Create(workspaceID string, dto ChatDto) (Chat, error) {
 	return client.DoOK[Chat](s.c, "POST", "/workspaces/"+workspaceID+"/chats", dto, nil)
+}
+
+func (s *Service) GenerateTitle(workspaceID, chatID string, dto ChatTitleDto) (Chat, error) {
+	return client.DoOK[Chat](s.c, "POST", "/workspaces/"+workspaceID+"/chats/"+chatID+"/title", dto, nil)
 }
 
 func (s *Service) Update(workspaceID, chatID string, dto map[string]any) (Chat, error) {

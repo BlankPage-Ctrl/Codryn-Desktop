@@ -35,9 +35,13 @@ func (s *Store) handleCreateChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	now := ts()
+	title := body.Title
+	if title == "" {
+		title = "New Chat"
+	}
 	chat := Chat{
 		ID:           newID(),
-		Title:        body.Title,
+		Title:        title,
 		ProviderID:   body.ProviderID,
 		ModelID:      body.ModelID,
 		SystemPrompt: body.SystemPrompt,
@@ -48,6 +52,24 @@ func (s *Store) handleCreateChat(w http.ResponseWriter, r *http.Request) {
 	}
 	s.Chats.Add(chat)
 	writeJSON(w, r, http.StatusCreated, chat)
+}
+
+func (s *Store) handleGenerateChatTitle(w http.ResponseWriter, r *http.Request) {
+	wsID := r.PathValue("workspaceId")
+	id := r.PathValue("id")
+	ok := s.Chats.Update(
+		func(c Chat) bool { return c.ID == id && c.WorkspaceID == wsID },
+		func(chat *Chat) {
+			chat.Title = "Mock chat title"
+			chat.UpdatedAt = ts()
+		},
+	)
+	if !ok {
+		writeError(w, r, http.StatusNotFound, "Chat "+id+" not found")
+		return
+	}
+	chat, _ := s.Chats.Find(func(c Chat) bool { return c.ID == id })
+	writeJSON(w, r, http.StatusOK, chat)
 }
 
 func (s *Store) handleUpdateChat(w http.ResponseWriter, r *http.Request) {

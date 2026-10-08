@@ -470,6 +470,7 @@ var stdioRoutes = []stdioRoute{
 	{verb: "GET", re: re(`^/workspaces/([^/]+)/chats$`), rpc: "list.chat", build: params("workspaceId")},
 	{verb: "POST", re: re(`^/workspaces/([^/]+)/chats$`), rpc: "create.chat", build: extendBody("workspaceId")},
 	{verb: "GET", re: re(`^/workspaces/([^/]+)/chats/([^/]+)$`), rpc: "get.chat", build: params("workspaceId", "id")},
+	{verb: "POST", re: re(`^/workspaces/([^/]+)/chats/([^/]+)/title$`), rpc: "generate.chat-title", build: buildChatTitle},
 	{verb: "PATCH", re: re(`^/workspaces/([^/]+)/chats/([^/]+)$`), rpc: "update.chat", build: extendBody("workspaceId", "id")},
 	{verb: "DELETE", re: re(`^/workspaces/([^/]+)/chats/([^/]+)$`), rpc: "delete.chat", build: params("workspaceId", "id")},
 
@@ -647,6 +648,13 @@ func buildSearchFiles(ids []string, _ any, query map[string]string) (any, error)
 			m["maxDepth"] = n
 		}
 	}
+	return m, nil
+}
+
+func buildChatTitle(ids []string, body any, _ map[string]string) (any, error) {
+	m := bodyToMap(body)
+	m["workspaceId"] = ids[0]
+	m["id"] = ids[1]
 	return m, nil
 }
 

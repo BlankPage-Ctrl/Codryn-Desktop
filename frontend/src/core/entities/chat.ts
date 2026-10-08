@@ -1,7 +1,7 @@
 export type ChatMode = 'ask' | 'plan' | 'edit'
 
 export interface ChatDto {
-    title: string
+    title?: string
     modelId?: string
     providerId?: string
     systemPrompt?: string

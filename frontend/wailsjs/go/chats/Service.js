@@ -10,6 +10,10 @@ export function Delete(arg1, arg2) {
   return window['go']['chats']['Service']['Delete'](arg1, arg2);
 }
 
+export function GenerateTitle(arg1, arg2, arg3) {
+  return window['go']['chats']['Service']['GenerateTitle'](arg1, arg2, arg3);
+}
+
 export function Get(arg1, arg2) {
   return window['go']['chats']['Service']['Get'](arg1, arg2);
 }

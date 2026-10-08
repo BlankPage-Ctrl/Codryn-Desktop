@@ -5,6 +5,7 @@ export interface ChatSessionStoreLogic {
     ensure(chatId: string): void
     patch(chatId: string, patch: Partial<ChatSessionState>): void
     remove(chatId: string): void
+    rekey(fromId: string, toId: string): void
     clear(): void
 }
 
@@ -27,6 +28,11 @@ export function createChatSessionStoreLogic(
         getStorer().removeSession(chatId)
     }
 
+    function rekey(fromId: string, toId: string): void {
+        if (fromId === toId) return
+        getStorer().moveSession(fromId, toId)
+    }
+
     function clear(): void {
         getStorer().clearSessions()
     }
@@ -35,6 +41,7 @@ export function createChatSessionStoreLogic(
         ensure,
         patch,
         remove,
+        rekey,
         clear,
     }
 }
