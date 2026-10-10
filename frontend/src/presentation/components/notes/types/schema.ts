@@ -1,5 +1,11 @@
 import type { Note, Category, Priority } from '@/core/entities'
 
+export interface NoteGroupItem {
+    id: string
+    name: string
+    notes: Note[]
+}
+
 export interface NotesTabSchema {
     note: Note
     categories: Category[]

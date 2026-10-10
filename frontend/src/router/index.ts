@@ -9,11 +9,6 @@ const router = createRouter({
             component: () => import('@/presentation/views/Workspace.vue'),
         },
         {
-            path: '/primary',
-            name: 'primary',
-            redirect: '/',
-        },
-        {
             path: '/workspace/:id?',
             name: 'workspace',
             component: () => import('@/presentation/views/Workspace.vue'),

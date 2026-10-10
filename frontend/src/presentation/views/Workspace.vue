@@ -12,7 +12,6 @@ import {
     Settings as SettingsIcon,
 } from '@iconoir/vue'
 import { useDialog } from '@/presentation/composables/useDialog'
-import { AppList } from '@/presentation/components/list'
 import {
     useWorkspaceStorer,
     useChatStorer,
@@ -46,9 +45,11 @@ import type { FEInsightSearchHit } from '@/core/entities'
 import { APPEARANCE_PRESETS } from '@/core/entities'
 import { isPendingChatId } from '@/shared/utils/chat.utils'
 import ChatTab from '@/presentation/components/chat/ChatTab.vue'
+import ChatList from '@/presentation/components/chat/ChatList.vue'
 import type { ChatTabSchema } from '@/presentation/components/chat/types/schema'
 import NotesTab from '@/presentation/components/notes/NotesTab.vue'
 import type { NotesTabSchema } from '@/presentation/components/notes'
+import { NoteGroup } from '@/presentation/components/notes'
 import SettingsTab from '@/presentation/components/settings/SettingsTab.vue'
 import type {
     SettingsTabSchema,
@@ -63,14 +64,11 @@ import { useSidebarKeyboard } from '@/presentation/composables/useSidebarKeyboar
 import { useShellExec } from '@/presentation/composables/useShellExec'
 import { useTabs } from '@/presentation/composables/useTabs'
 import { FileExplorer } from '@/presentation/components/file-explorer'
-import { NoteGroup } from '@/presentation/components/note-group'
 import {
     chatFormSchema,
     createProviderFormSchema,
     modelFormSchema,
     categoryFormSchema,
-    createSidebarChatListSchema,
-    createSidebarNoteListSchema,
     createChatTabSchema,
     createHitlDockSchema,
     createNotesTabSchema,
@@ -524,18 +522,6 @@ function openChatCreate() {
     open(draft.id, chatTabMeta(draft.id))
 }
 
-const chatListSchema = computed(() =>
-    createSidebarChatListSchema({
-        activeChatId: activeChatId.value ?? undefined,
-        onSelect: (chat) => {
-            open(chat.id, chatTabMeta(chat.id))
-        },
-        onEdit: openChatEdit,
-        onDelete: confirmDeleteChat,
-        onCreate: openChatCreate,
-    }),
-)
-
 async function openChatEdit(chat: Chat) {
     await dialog.spawn({
         title: 'Edit chat',
@@ -570,10 +556,13 @@ function getNoteById(noteId: string): Note | undefined {
     return noteStorer.notes.find((n) => n.id === noteId)
 }
 
+// Local drafts live in the note store but only belong to their tab, so they
+// are filtered out of the sidebar list.
 const noteGroups = computed(() => {
     const cats = noteStorer.categories
     const map = new Map<string, Note[]>()
     for (const note of noteStorer.notes) {
+        if (draftNoteIds.value.has(note.id)) continue
         const key = note.category_id || '__uncategorized__'
         if (!map.has(key)) map.set(key, [])
         map.get(key)!.push(note)
@@ -589,17 +578,6 @@ const activeNoteId = computed(() => {
     const meta = activeMeta.value
     return meta?.kind === 'note' ? meta.noteId : undefined
 })
-
-const noteListSchema = computed(() =>
-    createSidebarNoteListSchema({
-        activeNoteId: activeNoteId.value,
-        onSelect: (note) => {
-            open(note.id, noteTabMeta(note.id))
-        },
-        onDelete: confirmDeleteNote,
-        onCreate: openNoteCreate,
-    }),
-)
 
 async function openNoteCreate() {
     const id = crypto.randomUUID()
@@ -1116,23 +1094,22 @@ onUnmounted(() => {
                         </button>
                     </div>
                     <div class="ws-sidebar__body">
-                        <AppList
+                        <ChatList
                             v-if="!showFileExplorer && !showNotes"
-                            :schema="chatListSchema"
-                            :items="chatStorer.chats"
+                            :chats="chatStorer.chats"
+                            :active-chat-id="activeChatId ?? undefined"
+                            @select="(chat) => open(chat.id, chatTabMeta(chat.id))"
+                            @edit="openChatEdit"
+                            @delete="confirmDeleteChat"
+                            @create="openChatCreate"
                         />
-                        <div v-else-if="!showFileExplorer && showNotes" class="ws-note-groups">
-                            <div v-if="!noteStorer.notes.length" class="ws-note-groups__empty">
-                                No notes yet
-                            </div>
-                            <NoteGroup
-                                v-for="group in noteGroups"
-                                :key="group.id"
-                                :title="group.name"
-                                :schema="noteListSchema"
-                                :notes="group.notes"
-                            />
-                        </div>
+                        <NoteGroup
+                            v-else-if="!showFileExplorer && showNotes"
+                            :groups="noteGroups"
+                            :active-note-id="activeNoteId"
+                            @select="(note) => open(note.id, noteTabMeta(note.id))"
+                            @delete="confirmDeleteNote"
+                        />
                         <FileExplorer
                             v-else
                             @toggle="onFileToggle"

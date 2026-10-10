@@ -32,7 +32,8 @@ function handlePriorityChange(priority: Priority) {
 
 <template>
     <div class="note-save-panel">
-        <div class="note-save-panel__left">
+        <!-- i dont know is it usefull or not -->
+        <!-- <div class="note-save-panel__left">
             <NotePriorityPicker :value="priority" @change="handlePriorityChange" />
             <span
                 class="note-save-panel__status"
@@ -40,7 +41,7 @@ function handlePriorityChange(priority: Priority) {
             >
                 {{ statusText }}
             </span>
-        </div>
+        </div> -->
         <pButton
             :schema="{
                 variant: 'solid',
