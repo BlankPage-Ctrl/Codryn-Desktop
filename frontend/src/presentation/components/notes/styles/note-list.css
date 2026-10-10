@@ -1,0 +1,176 @@
+.note-list {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+}
+
+.note-list__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 8px 6px 10px;
+    flex-shrink: 0;
+    min-height: 34px;
+}
+
+.note-list__label {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+}
+
+.note-list__title {
+    font-family: var(--font-serif);
+    font-size: var(--type-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    opacity: 0.7;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+.note-list__count {
+    font-size: var(--type-2xs);
+    color: var(--text-primary);
+    opacity: 0.4;
+    white-space: nowrap;
+}
+
+.note-list__search {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 4px 0 7px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    transition: border-color 80ms ease;
+}
+
+.note-list__search:focus-within {
+    border-color: var(--accent);
+}
+
+.note-list__icon {
+    flex-shrink: 0;
+    color: var(--text-primary);
+    opacity: 0.4;
+}
+
+.note-list__search-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: var(--font-serif);
+    font-size: var(--type-xs);
+}
+
+.note-list__search-input::placeholder {
+    color: var(--text-primary);
+    opacity: 0.4;
+}
+
+.note-list__actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.note-list__btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-primary);
+    opacity: 0.45;
+    cursor: pointer;
+    transition:
+        background-color 80ms ease,
+        opacity 80ms ease;
+}
+
+.note-list__btn:hover {
+    background: rgba(var(--raw-border-color), 0.3);
+    opacity: 1;
+}
+
+.note-list__btn--on {
+    opacity: 1;
+    background: rgba(var(--raw-border-color), 0.3);
+}
+
+.note-list__dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent, #8250df);
+}
+
+.note-list__dot--hidden {
+    display: none;
+}
+
+.note-list__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-height: 0;
+}
+
+.note-list__empty {
+    padding: 20px 10px;
+    text-align: center;
+    font-size: var(--type-sm);
+    color: var(--text-primary);
+    opacity: 0.45;
+}
+
+.note-list__heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 10px 10px 4px;
+    margin-top: 2px;
+}
+
+.note-list__heading:first-child {
+    margin-top: 0;
+    padding-top: 2px;
+}
+
+.note-list__heading-label {
+    font-size: var(--type-2xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-primary);
+    opacity: 0.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.note-list__heading-count {
+    font-size: var(--type-2xs);
+    color: var(--text-primary);
+    opacity: 0.3;
+}

@@ -40,7 +40,7 @@ import {
     insightActions,
     mcpActions,
 } from '@/application/actions'
-import type { Chat, ChatMode, Note, RevertPreviewState } from '@/core/entities'
+import type { Chat, ChatMode, Note, RevertPreviewState, Category } from '@/core/entities'
 import type { FEInsightSearchHit } from '@/core/entities'
 import { APPEARANCE_PRESETS } from '@/core/entities'
 import { isPendingChatId } from '@/shared/utils/chat.utils'
@@ -48,8 +48,18 @@ import ChatTab from '@/presentation/components/chat/ChatTab.vue'
 import ChatList from '@/presentation/components/chat/ChatList.vue'
 import type { ChatTabSchema } from '@/presentation/components/chat/types/schema'
 import NotesTab from '@/presentation/components/notes/NotesTab.vue'
-import type { NotesTabSchema } from '@/presentation/components/notes'
-import { NoteGroup } from '@/presentation/components/notes'
+import type {
+    CategoriesTabSchema,
+    NoteFilterState,
+    NoteListSchema,
+    NotesTabSchema,
+} from '@/presentation/components/notes'
+import {
+    CategoriesTab,
+    NoteList,
+    countNotesByCategory,
+    DEFAULT_NOTE_FILTER,
+} from '@/presentation/components/notes'
 import SettingsTab from '@/presentation/components/settings/SettingsTab.vue'
 import type {
     SettingsTabSchema,
@@ -72,6 +82,8 @@ import {
     createChatTabSchema,
     createHitlDockSchema,
     createNotesTabSchema,
+    createCategoriesTabSchema,
+    applyNoteFilterValue,
     createWorkspaceLayout,
     createSettingsTabSchema,
 } from '@/presentation/schemas'
@@ -81,10 +93,12 @@ import {
 } from '@/presentation/schemas/mention'
 
 const SETTINGS_TAB_ID = '__settings__'
+const CATEGORIES_TAB_ID = '__categories__'
 
 type TabMeta =
     | { kind: 'chat'; chatId: string }
     | { kind: 'settings' }
+    | { kind: 'categories' }
     | { kind: 'note'; noteId: string }
 
 function chatTabMeta(chatId: string): TabMeta {
@@ -249,12 +263,14 @@ const activeNote = computed(() => {
 type ContentView =
     | { type: 'chat'; chatId: string }
     | { type: 'settings' }
+    | { type: 'categories' }
     | { type: 'note'; noteId: string }
     | { type: 'none' }
 
 const contentView = computed<ContentView>(() => {
     const meta = activeMeta.value
     if (meta?.kind === 'settings') return { type: 'settings' }
+    if (meta?.kind === 'categories') return { type: 'categories' }
     if (meta?.kind === 'chat') return { type: 'chat', chatId: meta.chatId }
     if (meta?.kind === 'note') return { type: 'note', noteId: meta.noteId }
     return { type: 'none' }
@@ -275,7 +291,12 @@ watch(activeChatId, (newId) => {
 
 const WsTabStripSchema = computed<WsTabStripSchema<string>>(() => {
     const tabs = openChatIds.value
-        .filter((id) => id !== SETTINGS_TAB_ID)
+        // Singleton tabs (Settings, Categories) are appended below, so the
+        // loop only renders real chat and note tabs.
+        .filter((id) => {
+            const kind = getMeta(id)?.kind
+            return kind === 'chat' || kind === 'note'
+        })
         .map((id) => {
             const meta = getMeta(id)
             if (meta?.kind === 'note') {
@@ -300,6 +321,15 @@ const WsTabStripSchema = computed<WsTabStripSchema<string>>(() => {
             id: SETTINGS_TAB_ID,
             title: 'Settings',
             icon: SettingsIcon,
+            closable: true,
+        })
+    }
+
+    if (isOpen(CATEGORIES_TAB_ID)) {
+        tabs.push({
+            id: CATEGORIES_TAB_ID,
+            title: 'Categories',
+            icon: Folder,
             closable: true,
         })
     }
@@ -558,26 +588,36 @@ function getNoteById(noteId: string): Note | undefined {
 
 // Local drafts live in the note store but only belong to their tab, so they
 // are filtered out of the sidebar list.
-const noteGroups = computed(() => {
-    const cats = noteStorer.categories
-    const map = new Map<string, Note[]>()
-    for (const note of noteStorer.notes) {
-        if (draftNoteIds.value.has(note.id)) continue
-        const key = note.category_id || '__uncategorized__'
-        if (!map.has(key)) map.set(key, [])
-        map.get(key)!.push(note)
-    }
-    return [...map.entries()].map(([categoryId, notes]) => ({
-        id: categoryId,
-        name: cats.find((c) => c.id === categoryId)?.name ?? 'Uncategorized',
-        notes,
-    }))
-})
+const visibleNotes = computed(() => noteStorer.notes.filter((n) => !draftNoteIds.value.has(n.id)))
 
 const activeNoteId = computed(() => {
     const meta = activeMeta.value
     return meta?.kind === 'note' ? meta.noteId : undefined
 })
+
+const noteFilter = ref<NoteFilterState>({ ...DEFAULT_NOTE_FILTER })
+const noteSearchOpen = ref(false)
+
+const noteListSchema = computed<NoteListSchema>(() => ({
+    notes: visibleNotes.value,
+    categories: noteStorer.categories,
+    filter: noteFilter.value,
+    activeNoteId: activeNoteId.value,
+    searchOpen: noteSearchOpen.value,
+    categoriesOpen: isOpen(CATEGORIES_TAB_ID),
+}))
+
+function toggleNoteSearch() {
+    noteSearchOpen.value = !noteSearchOpen.value
+}
+
+function setNoteSearch(search: string) {
+    noteFilter.value = { ...noteFilter.value, search }
+}
+
+function applyNoteFilterOption(value: string) {
+    noteFilter.value = applyNoteFilterValue(noteFilter.value, value)
+}
 
 async function openNoteCreate() {
     const id = crypto.randomUUID()
@@ -735,7 +775,8 @@ async function openCategoryCreate(note?: Note) {
         schema: categoryFormSchema,
         confirmLabel: 'Create',
         submit: async (data) => {
-            const name = String(data.category!.name ?? '')
+            const name = String(data.category?.name ?? '')
+            if (!name.trim()) return
             const id = await noteActions.createCategory(workspaceId.value, { name })
             if (note) {
                 if (draftNoteIds.value.has(note.id)) {
@@ -744,6 +785,55 @@ async function openCategoryCreate(note?: Note) {
                     queueSave(note.id, { category_id: id })
                 }
             }
+        },
+    })
+}
+
+function openCategoriesManager() {
+    open(CATEGORIES_TAB_ID, { kind: 'categories' })
+}
+
+function buildCategoriesTabSchema(): CategoriesTabSchema {
+    return createCategoriesTabSchema({
+        categories: noteStorer.categories,
+        counts: countNotesByCategory(noteStorer.notes),
+        error: noteStorer.error,
+        onCreate: () => void openCategoryCreate(),
+        onRename: handleRenameCategory,
+        onDelete: handleDeleteCategory,
+    })
+}
+
+async function handleRenameCategory(category: Category) {
+    await dialog.spawn({
+        title: 'Rename category',
+        schema: categoryFormSchema,
+        initialData: { category: { name: category.name } },
+        confirmLabel: 'Save',
+        submit: async (data) => {
+            const name = String(data.category?.name ?? '')
+            if (!name.trim()) return
+            await noteActions.renameCategory(workspaceId.value, category.id, name)
+        },
+    })
+}
+
+async function handleDeleteCategory(category: Category) {
+    const movedNotes = countNotesByCategory(noteStorer.notes)[category.id] ?? 0
+    const fallback = noteStorer.categories.find((c) => c.is_default)?.name ?? 'the default category'
+    const message =
+        movedNotes > 0
+            ? `Delete "${category.name}"? Its ${movedNotes} note${movedNotes === 1 ? '' : 's'} will move to ${fallback}.`
+            : `Delete "${category.name}"?`
+    await dialog.spawn({
+        title: 'Delete category',
+        message,
+        confirmLabel: 'Delete',
+        confirmVariant: 'danger',
+        submit: async () => {
+            // The backend reassigns the notes and the action refetches the
+            // list, so the groups rebuild on their own.
+            await noteActions.deleteCategory(workspaceId.value, category.id)
         },
     })
 }
@@ -919,6 +1009,8 @@ async function handleDeleteProvider(id: string) {
 function cleanupWorkspace() {
     committingPending.value = new Set()
     justCommitted.value = new Set()
+    noteFilter.value = { ...DEFAULT_NOTE_FILTER }
+    noteSearchOpen.value = false
     chatActions.clearPendingChats()
     composerActions.clear()
     chatSessionActions.clear()
@@ -1103,12 +1195,16 @@ onUnmounted(() => {
                             @delete="confirmDeleteChat"
                             @create="openChatCreate"
                         />
-                        <NoteGroup
-                            v-else-if="!showFileExplorer && showNotes"
-                            :groups="noteGroups"
-                            :active-note-id="activeNoteId"
+                        <NoteList
+                            v-else-if="showNotes"
+                            :schema="noteListSchema"
                             @select="(note) => open(note.id, noteTabMeta(note.id))"
                             @delete="confirmDeleteNote"
+                            @toggle-search="toggleNoteSearch"
+                            @close-search="noteSearchOpen = false"
+                            @update:search="setNoteSearch"
+                            @filter-select="applyNoteFilterOption"
+                            @open-categories="openCategoriesManager"
                         />
                         <FileExplorer
                             v-else
@@ -1142,6 +1238,13 @@ onUnmounted(() => {
                         <SettingsTab
                             v-if="contentView.type === 'settings'"
                             :schema="buildSettingsTabSchema()"
+                        />
+                        <CategoriesTab
+                            v-if="contentView.type === 'categories'"
+                            :schema="buildCategoriesTabSchema()"
+                            @create="openCategoryCreate()"
+                            @rename="handleRenameCategory"
+                            @delete="handleDeleteCategory"
                         />
                         <div v-if="!openChatIds.length" class="ws-content__empty">
                             <div class="ws-empty__icon">

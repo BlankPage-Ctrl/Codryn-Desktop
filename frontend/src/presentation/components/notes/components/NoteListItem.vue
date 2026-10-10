@@ -34,9 +34,9 @@ const priorityLabel = computed(() => {
         <div class="note-list-item__body">
             <span class="note-list-item__name">{{ note.name }}</span>
             <span v-if="note.desc" class="note-list-item__desc">{{ note.desc }}</span>
-            <div v-if="priorityLabel" class="note-list-item__meta">
+            <!-- <div v-if="priorityLabel" class="note-list-item__meta">
                 <span class="note-list-item__priority">{{ priorityLabel }}</span>
-            </div>
+            </div> -->
         </div>
 
         <div class="note-list-item__actions" @click.stop>

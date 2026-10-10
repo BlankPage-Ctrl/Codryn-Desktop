@@ -4,6 +4,7 @@ import type { ResolvedNotesTab } from './types/resolved'
 import NoteNameField from './components/NoteNameField.vue'
 import NoteDescField from './components/NoteDescField.vue'
 import NoteDetailsEditor from './components/NoteDetailsEditor.vue'
+import NoteCategoryPicker from './components/NoteCategoryPicker.vue'
 import DownPanel from './components/DownPanel.vue'
 
 const props = defineProps<{
@@ -61,6 +62,11 @@ function changePriority(priority: string) {
     draft.priority = priority as ResolvedNotesTab['note']['priority']
     props.resolved.onPriorityChange?.(draft.priority)
 }
+
+function changeCategory(categoryId: string) {
+    draft.category_id = categoryId
+    props.resolved.onCategoryChange?.(categoryId)
+}
 </script>
 
 <template>
@@ -73,13 +79,13 @@ function changePriority(priority: string) {
                     @commit="commitName"
                 />
                 <NoteDescField :value="draft.desc" @commit="commitDesc" />
-                <!-- <div class="note-tab__pickers">
+                <div class="note-tab__pickers">
                     <NoteCategoryPicker
                         :value="draft.category_id"
                         :categories="resolved.categories"
                         @change="changeCategory"
                     />
-                </div> -->
+                </div>
             </div>
 
             <div class="note-tab__details">

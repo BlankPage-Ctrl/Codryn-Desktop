@@ -129,8 +129,11 @@ export function createNoteActions(
         storeLogic.clearError()
         try {
             await businessLogic.deleteCategory(workspaceId, id)
-            // categories are re-fetched or removed via store; for now just refetch
+            // The backend reassigns the deleted category notes to the default
+            // one, so notes are refetched too: leaving them stale would keep
+            // the old category_id and show them as Uncategorized.
             await fetchCategories(workspaceId)
+            await fetchNotes(workspaceId)
         } catch (e: unknown) {
             storeLogic.setError(toMessage(e) || 'Failed to delete category')
             throw e

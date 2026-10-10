@@ -23,6 +23,10 @@ export {
     createFileSearchDropdownItems,
     fileSearchDropdownProps,
 } from './dropdown/file-search-dropdown.schema'
+export {
+    applyNoteFilterValue,
+    RESET_FILTER_VALUE,
+} from './dropdown/note-filter-dropdown.schema'
 export { createWorkspaceLayout } from './layout/workspace-layout.schema'
 export { createChatTabSchema } from './chat/chat-tab.schema'
 export { createHitlDockSchema, type HitlDockParams } from './hitl/hitl-dock.schema'
@@ -31,6 +35,10 @@ export { createToolCallSchema } from './chat/tool-call.schema'
 export { createReasoningSchema } from './chat/reasoning.schema'
 export { createToolCallGroupSchema, createWorkLogSchema } from './chat/work-group.schema'
 export { createNotesTabSchema } from './notes/notes-tab.schema'
+export {
+    createCategoriesTabSchema,
+    type CategoriesTabParams,
+} from './category/categories-tab.schema'
 export { createSettingsTabSchema } from './settings/settings-tab.schema'
 export { EditActionIcon, TrashActionIcon } from './common/icons.schema'
 export { WORKSPACE_COMMANDS } from './common/commands'

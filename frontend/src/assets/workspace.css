@@ -142,7 +142,7 @@
     flex: none;
     min-width: 0;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 4px;
     overflow: hidden;
     background: transparent;
     transition:
@@ -256,7 +256,7 @@
     color: var(--text-primary);
     background: transparent;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     opacity: 0.72;
     transition:
