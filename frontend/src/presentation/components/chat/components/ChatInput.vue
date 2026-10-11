@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, nextTick, watch } from 'vue'
+import { computed, ref, nextTick, watch, onMounted } from 'vue'
 import {
     ChatBubbleEmpty,
     Cube,
@@ -65,6 +65,21 @@ const modelDropdownStyle: StyleConfig = {
 
 const input = ref('')
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+const MAX_TEXTAREA_HEIGHT = 160
+
+function autoResizeTextarea() {
+    const el = textareaRef.value
+    if (!el) return
+    el.style.height = 'auto'
+    const next = Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT)
+    el.style.height = `${next}px`
+    el.style.overflowY = el.scrollHeight > MAX_TEXTAREA_HEIGHT ? 'auto' : 'hidden'
+}
+
+watch(input, () => nextTick(autoResizeTextarea))
+
+onMounted(autoResizeTextarea)
 const mentionRange = ref<MentionTriggerRange | null>(null)
 const mentionActiveIndex = ref(0)
 const mentionDropupRef = ref<InstanceType<typeof MentionDropup> | null>(null)

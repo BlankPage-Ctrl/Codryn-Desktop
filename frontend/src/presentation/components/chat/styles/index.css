@@ -32,7 +32,7 @@
     gap: 6px;
     padding: 5px 6px;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 4px;
     background: var(--bg-primary);
     transition: border-color 0.15s;
 }
@@ -60,7 +60,9 @@
 }
 
 .input-field {
-    flex: 1;
+    flex: 0 1 auto;
+    width: 100%;
+    box-sizing: border-box;
     border: none;
     outline: none;
     background: transparent;
@@ -71,7 +73,23 @@
     resize: none;
     max-height: 160px;
     min-height: 20px;
+    overflow-y: hidden;
     padding: 1px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+.input-field::-webkit-scrollbar {
+    width: 6px;
+}
+
+.input-field::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.input-field::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
 }
 
 .input-field::placeholder {
@@ -651,7 +669,7 @@
     color: var(--text-secondary);
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 4px;
 }
 
 .edit-banner__text {

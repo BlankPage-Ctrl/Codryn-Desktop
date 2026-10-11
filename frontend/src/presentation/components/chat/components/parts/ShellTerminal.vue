@@ -17,7 +17,7 @@ defineProps<{
 .shell-terminal {
     background: #0b0e14;
     border: 1px solid #1f2630;
-    border-radius: 6px;
+    border-radius: 4px;
     padding: 8px 10px;
     margin-top: 6px;
     overflow: auto;
