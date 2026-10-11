@@ -12,6 +12,7 @@ import FilePart from './FilePart.vue'
 
 const props = defineProps<{
     part: MessagePartSchema
+    onCancelShell?: (executionId: string) => void
 }>()
 
 const observer = usePartSlotObserver()
@@ -57,9 +58,21 @@ onBeforeUnmount(() => {
     <div ref="el" class="part-slot" :style="placeholderStyle">
         <TextPart v-if="visible && part.type === 'text'" :schema="part" />
         <ReasoningPart v-else-if="visible && part.type === 'reasoning'" :schema="part" />
-        <ToolCallPart v-else-if="visible && part.type === 'tool-call'" :schema="part" />
-        <ToolCallGroupPart v-else-if="visible && part.type === 'tool-call-group'" :schema="part" />
-        <WorkLogGroupPart v-else-if="visible && part.type === 'work-log'" :schema="part" />
+        <ToolCallPart
+            v-else-if="visible && part.type === 'tool-call'"
+            :schema="part"
+            :on-cancel-shell="onCancelShell"
+        />
+        <ToolCallGroupPart
+            v-else-if="visible && part.type === 'tool-call-group'"
+            :schema="part"
+            :on-cancel-shell="onCancelShell"
+        />
+        <WorkLogGroupPart
+            v-else-if="visible && part.type === 'work-log'"
+            :schema="part"
+            :on-cancel-shell="onCancelShell"
+        />
         <SourcePart v-else-if="visible && part.type === 'source'" :schema="part" />
         <FilePart v-else-if="visible && part.type === 'file'" :schema="part" />
         <!-- <StepIndicator v-else-if="visible && part.type === 'step-start'" :schema="part" /> -->

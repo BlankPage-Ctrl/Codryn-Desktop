@@ -23,6 +23,7 @@ export interface BlockPartAction {
     ariaLabel: string
     tooltip?: string
     disabled?: boolean
+    tone?: 'default' | 'danger'
     onClick: (e: MouseEvent) => void | Promise<void>
 }
 

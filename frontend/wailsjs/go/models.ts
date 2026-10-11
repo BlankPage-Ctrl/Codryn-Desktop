@@ -1210,6 +1210,25 @@ export namespace settings {
 
 }
 
+export namespace shellexec {
+	
+	export class KillResult {
+	    executionId: string;
+	    killed: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new KillResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.executionId = source["executionId"];
+	        this.killed = source["killed"];
+	    }
+	}
+
+}
+
 export namespace stream {
 	
 	export class RunInfo {

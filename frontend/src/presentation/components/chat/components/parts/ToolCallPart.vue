@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { XmarkCircle } from '@iconoir/vue'
 import type { ToolCallPartSchema } from '../../types/schema'
 import type {
     EditFileToolData,
@@ -18,6 +19,7 @@ import { TerminalRenderer } from '@/presentation/components/terminal-renderer'
 
 const props = defineProps<{
     schema: ToolCallPartSchema
+    onCancelShell?: (executionId: string) => void
 }>()
 
 const resolved = computed(() => resolveToolCallPartSchema(props.schema))
@@ -95,6 +97,35 @@ interface ReadFileOutput {
     truncated?: boolean
     encoding?: string
 }
+
+// Live execution id for a running shell, used by the stop action. While
+// streaming the id comes from the shell watch store; after settle it falls
+// back to the persisted tool output.
+const shellExecutionId = computed<string | null>(() => {
+    if (resolved.value.toolName !== 'run_shell') return null
+    return (
+        live.value?.executionId ??
+        (props.schema.output as RunShellOutput | undefined)?.executionId ??
+        null
+    )
+})
+
+const shellCancelAction = computed(() => {
+    if (shellRendererSchema.value?.status !== 'running') return null
+    const executionId = shellExecutionId.value
+    const onCancelShell = props.onCancelShell
+    if (!executionId || !onCancelShell) return null
+    return {
+        id: 'cancel-shell',
+        icon: XmarkCircle,
+        ariaLabel: 'Stop shell command',
+        tooltip: 'Stop this shell command',
+        tone: 'danger' as const,
+        onClick: () => {
+            onCancelShell(executionId)
+        },
+    }
+})
 
 interface ReadFileInput {
     path?: string
@@ -276,6 +307,7 @@ const blockSchema = computed(() =>
         input: resolved.value.input,
         output: resolved.value.output,
         errorText: resolved.value.errorText,
+        ...(shellCancelAction.value ? { actions: [shellCancelAction.value] } : {}),
     }),
 )
 

@@ -55,3 +55,11 @@ export type FEShellExecEvent =
           code: string
           message: string
       }
+    | {
+          type: 'killed'
+          executionId: string
+          toolCallId: string | null
+          workspaceId: string | null
+          signal: string
+          at: number
+      }

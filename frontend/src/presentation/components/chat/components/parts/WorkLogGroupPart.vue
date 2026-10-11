@@ -8,6 +8,7 @@ import MessagePartSlot from './MessagePartSlot.vue'
 
 const props = defineProps<{
     schema: WorkLogPartSchema
+    onCancelShell?: (executionId: string) => void
 }>()
 
 const resolved = computed(() => resolveWorkLogPartSchema(props.schema))
@@ -31,7 +32,7 @@ function itemKey(item: MessagePartSchema): string {
     <BlockPart :schema="blockSchema">
         <div class="work-log-group">
             <template v-for="item in schema.items" :key="itemKey(item)">
-                <MessagePartSlot :part="item" />
+                <MessagePartSlot :part="item" :on-cancel-shell="onCancelShell" />
             </template>
         </div>
     </BlockPart>

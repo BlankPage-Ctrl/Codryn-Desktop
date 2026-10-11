@@ -39,6 +39,7 @@ import {
     hitlActions,
     insightActions,
     mcpActions,
+    shellExecActions,
 } from '@/application/actions'
 import type { Chat, ChatMode, Note, RevertPreviewState, Category } from '@/core/entities'
 import type { FEInsightSearchHit } from '@/core/entities'
@@ -444,6 +445,9 @@ function buildChatTabSchema(chat: Chat): ChatTabSchema {
             void chatSessionActions.sendMessage(workspaceId.value, chat.id, text, payload)
         },
         onStop: () => chatSessionActions.stop(chat.id),
+        onCancelShell: (executionId) => {
+            void shellExecActions.killExecution(executionId)
+        },
         onCancelEdit: () => {
             delete pendingEdits.value[chat.id]
             delete editPreviews.value[chat.id]

@@ -3,7 +3,7 @@ import { EventsOn, EventsOff } from '../../../wailsjs/runtime'
 import type { FEShellExecEvent } from '@/core/entities'
 import type { ShellExecPort, ShellExecWatchHandlers } from '@/core/repositories'
 
-const EVENT_TYPES = ['shell:start', 'shell:chunk', 'shell:done', 'shell:error'] as const
+const EVENT_TYPES = ['shell:start', 'shell:chunk', 'shell:done', 'shell:error', 'shell:killed'] as const
 
 function toEvent(raw: string): FEShellExecEvent | null {
     try {

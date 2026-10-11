@@ -46,5 +46,6 @@ export function resolveMessageListSchema(schema: MessageListSchema): ResolvedMes
         emptyMessage: schema.emptyMessage ?? 'Start a conversation',
         emptyHint: schema.emptyHint ?? 'Ask a question or describe a task',
         onEditMessage: schema.onEditMessage,
+        onCancelShell: schema.onCancelShell,
     }
 }

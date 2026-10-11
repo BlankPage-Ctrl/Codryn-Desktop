@@ -49,6 +49,7 @@ export interface ChatTabSchema {
     draftText?: string
     onCancelEdit?: () => void
     onEditMessage?: (messageId: string) => void
+    onCancelShell?: (executionId: string) => void
     error?: ChatErrorBannerSchema | null
     onDismissError?: () => void
     revertPreview?: RevertPreviewState | null
@@ -101,6 +102,7 @@ export interface MessageListSchema {
     emptyMessage?: string
     emptyHint?: string
     onEditMessage?: (messageId: string) => void
+    onCancelShell?: (executionId: string) => void
 }
 
 export interface TextPartSchema {

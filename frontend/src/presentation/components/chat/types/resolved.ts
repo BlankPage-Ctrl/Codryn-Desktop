@@ -115,6 +115,7 @@ export interface ResolvedMessageList {
     emptyMessage: string
     emptyHint: string
     onEditMessage?: (messageId: string) => void
+    onCancelShell?: (executionId: string) => void
 }
 
 export interface ResolvedTextPart {

@@ -24,6 +24,7 @@ import (
 	"codryn/desktop/internal/notes"
 	"codryn/desktop/internal/providers"
 	"codryn/desktop/internal/settings"
+	"codryn/desktop/internal/shellexec"
 	"codryn/desktop/internal/stream"
 	"codryn/desktop/internal/workspaces"
 )
@@ -49,6 +50,7 @@ type App struct {
 	Insight        *insight.Service
 	Mcp            *mcp.Service
 	ShellExecWatch *stream.ShellExecWatchService
+	ShellExec      *shellexec.Service
 }
 
 func NewApp() *App {
@@ -76,6 +78,7 @@ func NewApp() *App {
 		Insight:        insight.NewService(c, settingsSvc),
 		Mcp:            mcp.NewService(c),
 		ShellExecWatch: stream.NewShellExecWatchService(c),
+		ShellExec:      shellexec.NewService(c),
 	}
 }
 

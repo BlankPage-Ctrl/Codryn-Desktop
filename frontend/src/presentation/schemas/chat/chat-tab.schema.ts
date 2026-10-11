@@ -36,6 +36,7 @@ export interface ChatTabParams {
     draftText?: string
     onCancelEdit?: () => void
     onEditMessage?: (messageId: string) => void
+    onCancelShell?: (executionId: string) => void
     onDismissError?: () => void
     revertPreview?: RevertPreviewState | null
     onToggleRestoreFiles?: (enabled: boolean) => void
@@ -81,6 +82,7 @@ export function createChatTabSchema(params: ChatTabParams): ChatTabSchema {
         draftText: params.draftText,
         onCancelEdit: params.onCancelEdit,
         onEditMessage: params.onEditMessage,
+        onCancelShell: params.onCancelShell,
         revertPreview: params.revertPreview,
         onToggleRestoreFiles: params.onToggleRestoreFiles,
         usage: params.usage ?? null,

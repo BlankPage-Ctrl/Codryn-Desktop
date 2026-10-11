@@ -37,6 +37,7 @@ function handleKeydown(e: KeyboardEvent) {
 <template>
     <button
         class="block-action-btn"
+        :class="{ 'block-action-btn--danger': action.tone === 'danger' }"
         type="button"
         :aria-label="action.ariaLabel"
         :title="action.tooltip ?? action.ariaLabel"
@@ -93,6 +94,16 @@ function handleKeydown(e: KeyboardEvent) {
     opacity: 0.25;
     cursor: default;
     pointer-events: none;
+}
+
+.block-action-btn--danger {
+    color: var(--bp-danger-fg, #ef4444);
+    opacity: 0.55;
+}
+
+.block-action-btn--danger:hover:not(:disabled) {
+    opacity: 1;
+    background: var(--bp-danger-hover-bg, rgb(239 68 68 / 0.12));
 }
 
 .block-action-btn__icon {

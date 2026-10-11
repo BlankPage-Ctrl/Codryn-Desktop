@@ -11,6 +11,7 @@ import {
     useHitlStorer,
     useInsightStorer,
     useMcpStorer,
+    useShellExecStorer,
 } from '../stores'
 
 import {
@@ -28,6 +29,7 @@ import {
     insightRepository,
     mcpRepository,
     attachmentsRepository,
+    shellKillRepository,
 } from '@/data/services'
 import { fileWatch, createFeedStreamPort, hitlWatch } from '@/data/stream'
 
@@ -43,6 +45,7 @@ import { createChatSessionStoreLogic } from '../store-logic/chat-session.logic'
 import { createHitlStoreLogic } from '../store-logic/hitl.logic'
 import { createInsightStoreLogic } from '../store-logic/insight.logic'
 import { createMcpStoreLogic } from '../store-logic/mcp.logic'
+import { createShellExecStoreLogic } from '../store-logic/shell-exec.logic'
 
 import { createWorkspaceBusinessLogic } from '../business-logic/workspace.logic'
 import { createChatBusinessLogic } from '../business-logic/chat.logic'
@@ -55,6 +58,7 @@ import { createChatSessionEngine } from '../business-logic/chat-session.logic'
 import { createHitlBusinessLogic } from '../business-logic/hitl.logic'
 import { createInsightBusinessLogic } from '../business-logic/insight.logic'
 import { createMcpBusinessLogic } from '../business-logic/mcp.logic'
+import { createShellExecBusinessLogic } from '../business-logic/shell-exec.logic'
 
 import { createWorkspaceActions } from './workspace.actions'
 import { createAttachmentActions } from './attachment.actions'
@@ -69,6 +73,7 @@ import { createNoteActions } from './note.actions'
 import { createHitlActions } from './hitl.actions'
 import { createInsightActions } from './insight.actions'
 import { createMcpActions } from './mcp.actions'
+import { createShellExecActions } from './shell-exec.actions'
 
 const workspaceStoreLogic = createWorkspaceStoreLogic(() => useWorkspaceStorer())
 const workspaceBusinessLogic = createWorkspaceBusinessLogic(workspacesRepository)
@@ -153,6 +158,11 @@ const mcpBusinessLogic = createMcpBusinessLogic({ repo: mcpRepository })
 
 export const mcpActions = createMcpActions(mcpStoreLogic, mcpBusinessLogic)
 
+const shellExecStoreLogic = createShellExecStoreLogic(() => useShellExecStorer())
+const shellExecBusinessLogic = createShellExecBusinessLogic(shellKillRepository)
+
+export const shellExecActions = createShellExecActions(shellExecStoreLogic, shellExecBusinessLogic)
+
 export type { WorkspaceActions } from './workspace.actions'
 export type { AttachmentActions } from './attachment.actions'
 export type { ComposerActions } from './composer.actions'
@@ -166,3 +176,4 @@ export type { NoteActions } from './note.actions'
 export type { HitlActions } from './hitl.actions'
 export type { InsightActions } from './insight.actions'
 export type { McpActions } from './mcp.actions'
+export type { ShellExecActions } from './shell-exec.actions'

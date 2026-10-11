@@ -16,6 +16,7 @@ const props = defineProps<{
     /** Resolves `attachment://<id>` refs for history thumbnails. Provided by the View. */
     resolveAttachmentUrl?: (attachmentId: string) => Promise<string | null>
     onEditMessage?: (messageId: string) => void
+    onCancelShell?: (executionId: string) => void
     copyText?: string
     canCopy?: boolean
 }>()
@@ -106,7 +107,7 @@ const restParts = computed(() => {
                 v-text="roleLabel ?? (role === 'user' ? 'You' : '')"
             ></div>
             <template v-for="(part, idx) in restParts" :key="partKey(part, idx)">
-                <MessagePartSlot :part="part" />
+                <MessagePartSlot :part="part" :on-cancel-shell="onCancelShell" />
             </template>
         </div>
         <div v-if="showActions" class="bubble-actions">

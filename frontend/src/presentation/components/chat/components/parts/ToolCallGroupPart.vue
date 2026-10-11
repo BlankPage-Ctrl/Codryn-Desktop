@@ -8,6 +8,7 @@ import ToolCallPart from './ToolCallPart.vue'
 
 const props = defineProps<{
     schema: ToolCallGroupPartSchema
+    onCancelShell?: (executionId: string) => void
 }>()
 
 const resolved = computed(() => resolveToolCallGroupPartSchema(props.schema))
@@ -31,6 +32,7 @@ const blockSchema = computed(() =>
                 v-for="item in schema.items"
                 :key="item.partId ?? item.toolCallId"
                 :schema="item"
+                :on-cancel-shell="onCancelShell"
             />
         </div>
     </BlockPart>

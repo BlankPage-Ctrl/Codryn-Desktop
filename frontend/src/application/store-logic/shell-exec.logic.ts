@@ -4,6 +4,7 @@ import { createEmptyShellExecState } from '../stores/shell-exec.storer'
 
 export interface ShellExecStoreLogic {
     apply(event: FEShellExecEvent): void
+    markKilledByExecutionId(executionId: string): void
 }
 
 function startState(event: Extract<FEShellExecEvent, { type: 'start' }>): ShellExecState {
@@ -48,8 +49,29 @@ export function createShellExecStoreLogic(getStorer: () => ShellExecStorer): She
                     error: { code: event.code, message: event.message },
                 })
                 break
+            case 'killed':
+                storer.patch(key, {
+                    executionId: event.executionId,
+                    status: 'error',
+                    error: { code: 'SHELL_KILLED', message: 'Shell stopped by user' },
+                })
+                break
         }
     }
 
-    return { apply }
+    function markKilledByExecutionId(executionId: string): void {
+        if (!executionId) return
+        const storer = getStorer()
+        for (const key of Object.keys(storer.byToolCall)) {
+            const current = storer.byToolCall[key]
+            if (!current || current.executionId !== executionId) continue
+            if (current.status !== 'running') continue
+            storer.patch(key, {
+                status: 'error',
+                error: { code: 'SHELL_KILLED', message: 'Shell stopped by user' },
+            })
+        }
+    }
+
+    return { apply, markKilledByExecutionId }
 }

@@ -12,7 +12,7 @@ import {
     InputSearch,
 } from '@iconoir/vue'
 import type { Component } from 'vue'
-import type { BlockPartSchema } from '@/presentation/components/blockpart'
+import type { BlockPartAction, BlockPartSchema } from '@/presentation/components/blockpart'
 import { TOOL_LABELS } from '@/presentation/components/chat/helpers/knownTools'
 
 export interface ToolCallSchemaParams {
@@ -22,6 +22,7 @@ export interface ToolCallSchemaParams {
     input?: unknown
     output?: unknown
     errorText?: string
+    actions?: BlockPartAction[]
 }
 
 const TOOL_VIEW_TOGGLE: Record<string, boolean> = {
@@ -186,6 +187,7 @@ export function createToolCallSchema(params: ToolCallSchemaParams): BlockPartSch
         viewToggle: isStatic ? false : (TOOL_VIEW_TOGGLE[params.toolName] ?? false),
         defaultView: 'preview',
         status: isRunning ? 'streaming' : 'done',
+        ...(params.actions && params.actions.length > 0 ? { actions: params.actions } : {}),
         ...(params.toolCallId !== undefined ? { persistenceKey: `tool:${params.toolCallId}` } : {}),
         source: {
             data: {

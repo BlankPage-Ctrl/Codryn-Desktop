@@ -82,6 +82,7 @@ watch(
             :message-id="msg.id"
             :resolve-attachment-url="resolved.resolveAttachmentUrl"
             :on-edit-message="resolved.onEditMessage"
+            :on-cancel-shell="resolved.onCancelShell"
             :copy-text="msg.copyText"
             :can-copy="msg.canCopy"
         />

@@ -31,6 +31,7 @@ export function resolveChatTabSchema(schema: ChatTabSchema): ResolvedChatTab {
             emptyMessage: schema.emptyMessage,
             emptyHint: schema.emptyHint,
             onEditMessage: schema.onEditMessage,
+            onCancelShell: schema.onCancelShell,
         }),
         input: resolveChatInputSchema({
             // An edit draft keeps the composer usable while a run is live:

@@ -8,3 +8,12 @@ export interface ShellExecWatchHandlers {
 export interface ShellExecPort {
     watch(workspaceId: string, handlers: ShellExecWatchHandlers): () => void
 }
+
+export interface ShellKillResult {
+    executionId: string
+    killed: boolean
+}
+
+export interface ShellKillPort {
+    kill(executionId: string): Promise<ShellKillResult>
+}

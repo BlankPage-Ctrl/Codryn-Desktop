@@ -51,6 +51,7 @@ func main() {
 			app.Insight,
 			app.Mcp,
 			app.ShellExecWatch,
+			app.ShellExec,
 		},
 	})
 
