@@ -552,6 +552,14 @@ var stdioRoutes = []stdioRoute{
 	// mcp
 	{verb: "GET", re: re(`^/workspaces/([^/]+)/mcp/servers$`), rpc: "list.mcp-server", build: params("workspaceId")},
 	{verb: "PUT", re: re(`^/workspaces/([^/]+)/mcp/servers/([^/]+)$`), rpc: "set.mcp-server", build: extendBody("workspaceId", "name")},
+
+	// plugins
+	{verb: "GET", re: re(`^/workspaces/([^/]+)/plugins$`), rpc: "list.plugin", build: params("workspaceId")},
+	{verb: "GET", re: re(`^/workspaces/([^/]+)/plugins/([^/]+)$`), rpc: "get.plugin", build: params("workspaceId", "id")},
+	{verb: "PUT", re: re(`^/workspaces/([^/]+)/plugins/([^/]+)$`), rpc: "set.plugin", build: extendBody("workspaceId", "id")},
+	{verb: "POST", re: re(`^/plugins/discover$`), rpc: "discover.plugin", build: noParams},
+	{verb: "POST", re: re(`^/plugins/register$`), rpc: "register.plugin", build: directBody},
+	{verb: "DELETE", re: re(`^/plugins/([^/]+)$`), rpc: "unregister.plugin", build: params("pluginId")},
 }
 
 func re(pattern string) *regexp.Regexp {

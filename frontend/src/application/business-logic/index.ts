@@ -37,3 +37,8 @@ export {
     type McpBusinessLogic,
     type McpBusinessLogicDeps,
 } from './mcp.logic'
+export {
+    createPluginBusinessLogic,
+    type PluginBusinessLogic,
+    type PluginBusinessLogicDeps,
+} from './plugin.logic'

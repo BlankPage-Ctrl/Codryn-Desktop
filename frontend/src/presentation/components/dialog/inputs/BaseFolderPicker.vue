@@ -85,9 +85,6 @@ const handleClick = async () => {
         <div class="picker-value" :class="{ 'picker-value-dense': dense }" :title="valueText">
             <span v-if="valueText" class="value-text">{{ valueText }}</span>
             <span v-else class="value-placeholder">{{ placeholder }}</span>
-        </div>
-
-        <div class="message-container">
             <transition name="slide-fade" mode="out-in">
                 <span v-if="error" class="error-text" :key="error">{{ error }}</span>
                 <span v-else-if="helperText" class="helper-text" :key="helperText">{{
@@ -95,6 +92,15 @@ const handleClick = async () => {
                 }}</span>
             </transition>
         </div>
+
+        <!-- <div class="message-container">
+            <transition name="slide-fade" mode="out-in">
+                <span v-if="error" class="error-text" :key="error">{{ error }}</span>
+                <span v-else-if="helperText" class="helper-text" :key="helperText">{{
+                    helperText
+                }}</span>
+            </transition>
+        </div> -->
     </div>
 </template>
 

@@ -40,6 +40,7 @@ export {
     type CategoriesTabParams,
 } from './category/categories-tab.schema'
 export { createSettingsTabSchema } from './settings/settings-tab.schema'
+export { createPluginTabSchema } from './plugin/plugin-tab.schema'
 export { EditActionIcon, TrashActionIcon } from './common/icons.schema'
 export { WORKSPACE_COMMANDS } from './common/commands'
 export {

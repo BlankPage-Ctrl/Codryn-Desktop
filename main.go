@@ -50,6 +50,7 @@ func main() {
 			app.HitlWatch,
 			app.Insight,
 			app.Mcp,
+			app.Plugins,
 			app.ShellExecWatch,
 			app.ShellExec,
 		},

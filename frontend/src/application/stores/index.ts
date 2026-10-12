@@ -21,4 +21,5 @@ export {
 export { useHitlStorer, type HitlStorer, type HitlItemState } from './hitl.storer'
 export { useInsightStorer, type InsightStorer } from './insight.storer'
 export { useMcpStorer, type McpStorer } from './mcp.storer'
+export { usePluginStorer, type PluginStorer } from './plugin.storer'
 export type { ShellExecLine } from '@/core/entities'

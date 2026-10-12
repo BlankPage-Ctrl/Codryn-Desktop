@@ -146,6 +146,13 @@ func (s *Store) NewHandler() http.Handler {
 	mux.HandleFunc("GET /workspaces/{id}/mcp/servers", s.handleMcpList)
 	mux.HandleFunc("PUT /workspaces/{id}/mcp/servers/{name}", s.handleMcpSet)
 
+	mux.HandleFunc("GET /workspaces/{id}/plugins", s.handlePluginList)
+	mux.HandleFunc("GET /workspaces/{id}/plugins/{pluginId}", s.handlePluginGet)
+	mux.HandleFunc("PUT /workspaces/{id}/plugins/{pluginId}", s.handlePluginSet)
+	mux.HandleFunc("POST /plugins/discover", s.handlePluginDiscover)
+	mux.HandleFunc("POST /plugins/register", s.handlePluginRegister)
+	mux.HandleFunc("DELETE /plugins/{pluginId}", s.handlePluginUnregister)
+
 	return mux
 }
 

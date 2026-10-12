@@ -1065,6 +1065,279 @@ export namespace notes {
 
 }
 
+export namespace plugins {
+	
+	export class DiscoveredPlugin {
+	    id: string;
+	    dir: string;
+	    registered: boolean;
+	    enabled: boolean;
+	    manifestValid: boolean;
+	    notices: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new DiscoveredPlugin(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.dir = source["dir"];
+	        this.registered = source["registered"];
+	        this.enabled = source["enabled"];
+	        this.manifestValid = source["manifestValid"];
+	        this.notices = source["notices"];
+	    }
+	}
+	export class DiscoverResult {
+	    plugins: DiscoveredPlugin[];
+	
+	    static createFrom(source: any = {}) {
+	        return new DiscoverResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.plugins = this.convertValues(source["plugins"], DiscoveredPlugin);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class PluginCaps {
+	    format: string;
+	    name: string;
+	    description: string;
+	    version?: string;
+	    skills: string[];
+	    // Go type: struct { Shell bool "json:\"shell\""; Network bool "json:\"network\""; Sensitive bool "json:\"sensitive\"" }
+	    permissions: any;
+	    bootstrap: string;
+	    tools: any[];
+	    notices: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new PluginCaps(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.format = source["format"];
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.version = source["version"];
+	        this.skills = source["skills"];
+	        this.permissions = this.convertValues(source["permissions"], Object);
+	        this.bootstrap = source["bootstrap"];
+	        this.tools = source["tools"];
+	        this.notices = source["notices"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class PluginState {
+	    id: string;
+	    path?: string;
+	    source: string;
+	    enabled: boolean;
+	    status: string;
+	    error?: string;
+	    caps?: PluginCaps;
+	
+	    static createFrom(source: any = {}) {
+	        return new PluginState(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.path = source["path"];
+	        this.source = source["source"];
+	        this.enabled = source["enabled"];
+	        this.status = source["status"];
+	        this.error = source["error"];
+	        this.caps = this.convertValues(source["caps"], PluginCaps);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class GetResult {
+	    workspaceId: string;
+	    plugin: PluginState;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.workspaceId = source["workspaceId"];
+	        this.plugin = this.convertValues(source["plugin"], PluginState);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ListResult {
+	    workspaceId: string;
+	    plugins: PluginState[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ListResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.workspaceId = source["workspaceId"];
+	        this.plugins = this.convertValues(source["plugins"], PluginState);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	
+	export class RegisterResult {
+	    pluginId: string;
+	    enabled: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new RegisterResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.pluginId = source["pluginId"];
+	        this.enabled = source["enabled"];
+	    }
+	}
+	export class SetResult {
+	    workspaceId: string;
+	    plugin: PluginState;
+	
+	    static createFrom(source: any = {}) {
+	        return new SetResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.workspaceId = source["workspaceId"];
+	        this.plugin = this.convertValues(source["plugin"], PluginState);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class UnregisterResult {
+	    pluginId: string;
+	    unregistered: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new UnregisterResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.pluginId = source["pluginId"];
+	        this.unregistered = source["unregistered"];
+	    }
+	}
+
+}
+
 export namespace providers {
 	
 	export class ProviderModel {

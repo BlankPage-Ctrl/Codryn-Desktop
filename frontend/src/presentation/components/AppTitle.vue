@@ -5,6 +5,7 @@ import {
     Minus,
     NavArrowDown,
     Plus,
+    Puzzle,
     Settings as SettingsIcon,
     Square,
     Xmark,
@@ -39,6 +40,7 @@ const emit = defineEmits<{
     'create-workspace': []
     'delete-workspace': [id: string]
     'open-settings': []
+    'open-plugins': []
     'navigate-test-lab': []
     'select-search': [payload: AppSearchItemAny]
 }>()
@@ -70,6 +72,10 @@ function handleAction(action: CommandAction) {
 
 function openSettings() {
     emit('open-settings')
+}
+
+function openPlugins() {
+    emit('open-plugins')
 }
 
 const isMaximised = ref(false)
@@ -169,6 +175,14 @@ onUnmounted(() => {
             </button> -->
                 <AppInsightPopover :workspace-id="selectedWorkspaceId" />
                 <AppMcpPopover :workspace-id="selectedWorkspaceId" />
+                <button
+                    class="title-action-btn ws-plugins-btn"
+                    @click="openPlugins"
+                    title="Plugins"
+                    aria-label="Plugins"
+                >
+                    <Puzzle width="14" height="14" />
+                </button>
                 <button
                     class="title-action-btn ws-settings-btn"
                     @click="openSettings"
@@ -376,6 +390,14 @@ onUnmounted(() => {
 }
 
 .ws-settings-btn:hover {
+    color: var(--text-primary);
+}
+
+.ws-plugins-btn {
+    color: var(--text-primary);
+}
+
+.ws-plugins-btn:hover {
     color: var(--text-primary);
 }
 

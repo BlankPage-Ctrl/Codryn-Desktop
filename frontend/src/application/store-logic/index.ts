@@ -9,3 +9,4 @@ export { createShellExecStoreLogic, type ShellExecStoreLogic } from './shell-exe
 export { createHitlStoreLogic, type HitlStoreLogic } from './hitl.logic'
 export { createInsightStoreLogic, type InsightStoreLogic } from './insight.logic'
 export { createMcpStoreLogic, type McpStoreLogic } from './mcp.logic'
+export { createPluginStoreLogic, type PluginStoreLogic } from './plugin.logic'

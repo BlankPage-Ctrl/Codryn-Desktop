@@ -4,11 +4,12 @@ import { ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'v
 import { useRoute, useRouter } from 'vue-router'
 import {
     Album,
-    EmojiPuzzled,
     ChatBubbleEmpty,
+    EmojiPuzzled,
     Folder,
     Notes,
     Plus,
+    Puzzle,
     Settings as SettingsIcon,
 } from '@iconoir/vue'
 import { useDialog } from '@/presentation/composables/useDialog'
@@ -23,6 +24,7 @@ import {
     useChatSessionStorer,
     useFileExplorerStorer,
     useHitlStorer,
+    usePluginStorer,
     createEmptyChatSessionState,
 } from '@/application/stores'
 import {
@@ -40,6 +42,7 @@ import {
     insightActions,
     mcpActions,
     shellExecActions,
+    pluginActions,
 } from '@/application/actions'
 import type { Chat, ChatMode, Note, RevertPreviewState, Category } from '@/core/entities'
 import type { FEInsightSearchHit } from '@/core/entities'
@@ -74,6 +77,9 @@ import type { TabStripSchema as WsTabStripSchema } from '@/presentation/componen
 import { useSidebarKeyboard } from '@/presentation/composables/useSidebarKeyboard'
 import { useShellExec } from '@/presentation/composables/useShellExec'
 import { useTabs } from '@/presentation/composables/useTabs'
+import { usePluginsTab } from '@/presentation/composables/usePluginsTab'
+import PluginTab from '@/presentation/components/plugin/PluginTab.vue'
+import type { PluginTabSchema } from '@/presentation/components/plugin/types/schema'
 import { FileExplorer } from '@/presentation/components/file-explorer'
 import {
     chatFormSchema,
@@ -87,6 +93,7 @@ import {
     applyNoteFilterValue,
     createWorkspaceLayout,
     createSettingsTabSchema,
+    createPluginTabSchema,
 } from '@/presentation/schemas'
 import {
     createMentionItemsFromFiles,
@@ -95,12 +102,14 @@ import {
 
 const SETTINGS_TAB_ID = '__settings__'
 const CATEGORIES_TAB_ID = '__categories__'
+const PLUGINS_TAB_ID = '__plugins__'
 
 type TabMeta =
     | { kind: 'chat'; chatId: string }
     | { kind: 'settings' }
     | { kind: 'categories' }
     | { kind: 'note'; noteId: string }
+    | { kind: 'plugins' }
 
 function chatTabMeta(chatId: string): TabMeta {
     return { kind: 'chat', chatId }
@@ -120,6 +129,7 @@ const themeStorer = useThemeStorer()
 const noteStorer = useNoteStorer()
 const dialog = useDialog()
 const settingsTab = useSettingsTab()
+const pluginStorer = usePluginStorer()
 const chatSessionStorer = useChatSessionStorer()
 const composerStorer = useComposerStorer()
 const fileExplorerStorer = useFileExplorerStorer()
@@ -240,6 +250,15 @@ watch(
     },
 )
 
+const pluginsTab = usePluginsTab()
+
+watch(
+    () => pluginsTab.requestCount,
+    () => {
+        if (workspace.value) open(PLUGINS_TAB_ID, { kind: 'plugins' })
+    },
+)
+
 const activeChat = computed(() => {
     const meta = activeMeta.value
     if (!meta || meta.kind !== 'chat') return null
@@ -266,6 +285,7 @@ type ContentView =
     | { type: 'settings' }
     | { type: 'categories' }
     | { type: 'note'; noteId: string }
+    | { type: 'plugins' }
     | { type: 'none' }
 
 const contentView = computed<ContentView>(() => {
@@ -274,6 +294,7 @@ const contentView = computed<ContentView>(() => {
     if (meta?.kind === 'categories') return { type: 'categories' }
     if (meta?.kind === 'chat') return { type: 'chat', chatId: meta.chatId }
     if (meta?.kind === 'note') return { type: 'note', noteId: meta.noteId }
+    if (meta?.kind === 'plugins') return { type: 'plugins' }
     return { type: 'none' }
 })
 
@@ -331,6 +352,15 @@ const WsTabStripSchema = computed<WsTabStripSchema<string>>(() => {
             id: CATEGORIES_TAB_ID,
             title: 'Categories',
             icon: Folder,
+            closable: true,
+        })
+    }
+
+    if (isOpen(PLUGINS_TAB_ID)) {
+        tabs.push({
+            id: PLUGINS_TAB_ID,
+            title: 'Plugins',
+            icon: Puzzle,
             closable: true,
         })
     }
@@ -998,6 +1028,19 @@ function buildSettingsTabSchema(): SettingsTabSchema {
     })
 }
 
+function buildPluginTabSchema(): PluginTabSchema {
+    return createPluginTabSchema({
+        discovered: pluginStorer.discovered,
+        loading: pluginStorer.loading,
+        error: pluginStorer.error,
+        workspaceId: workspaceId.value,
+        onDiscover: () => void pluginActions.discover(),
+        onRegister: (pluginId, pluginDir) => void pluginActions.register(pluginId, pluginDir),
+        onUnregister: (pluginId) => void pluginActions.unregister(pluginId),
+        onToggle: (id, enabled) => void pluginActions.setEnabled(workspaceId.value, id, enabled),
+    })
+}
+
 async function handleDeleteModel(providerId: string, modelId: string) {
     await providerActions.deleteModel(providerId, modelId)
 }
@@ -1242,6 +1285,10 @@ onUnmounted(() => {
                         <SettingsTab
                             v-if="contentView.type === 'settings'"
                             :schema="buildSettingsTabSchema()"
+                        />
+                        <PluginTab
+                            v-if="contentView.type === 'plugins'"
+                            :schema="buildPluginTabSchema()"
                         />
                         <CategoriesTab
                             v-if="contentView.type === 'categories'"

@@ -443,6 +443,12 @@ func TestStdioRouteMapping(t *testing.T) {
 		{"PUT", "/settings/some-key", "set.setting"},
 		{"GET", "/workspaces/ws-1/mcp/servers", "list.mcp-server"},
 		{"PUT", "/workspaces/ws-1/mcp/servers/default-srv", "set.mcp-server"},
+		{"GET", "/workspaces/ws-1/plugins", "list.plugin"},
+		{"GET", "/workspaces/ws-1/plugins/plugin-a", "get.plugin"},
+		{"PUT", "/workspaces/ws-1/plugins/plugin-a", "set.plugin"},
+		{"POST", "/plugins/discover", "discover.plugin"},
+		{"POST", "/plugins/register", "register.plugin"},
+		{"DELETE", "/plugins/plugin-a", "unregister.plugin"},
 	}
 	for _, c := range cases {
 		route, err := mapRoute(c.verb, c.path)

@@ -22,6 +22,7 @@ import (
 	"codryn/desktop/internal/mockapi"
 	"codryn/desktop/internal/models"
 	"codryn/desktop/internal/notes"
+	"codryn/desktop/internal/plugins"
 	"codryn/desktop/internal/providers"
 	"codryn/desktop/internal/settings"
 	"codryn/desktop/internal/shellexec"
@@ -49,6 +50,7 @@ type App struct {
 	HitlWatch      *stream.HitlWatchService
 	Insight        *insight.Service
 	Mcp            *mcp.Service
+	Plugins        *plugins.Service
 	ShellExecWatch *stream.ShellExecWatchService
 	ShellExec      *shellexec.Service
 }
@@ -77,6 +79,7 @@ func NewApp() *App {
 		HitlWatch:      stream.NewHitlWatchService(c),
 		Insight:        insight.NewService(c, settingsSvc),
 		Mcp:            mcp.NewService(c),
+		Plugins:        plugins.NewService(c),
 		ShellExecWatch: stream.NewShellExecWatchService(c),
 		ShellExec:      shellexec.NewService(c),
 	}

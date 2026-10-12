@@ -13,6 +13,7 @@ import {
     providerActions,
 } from '@/application/actions'
 import { useSettingsTab } from '@/presentation/composables/useSettingsTab'
+import { usePluginsTab } from '@/presentation/composables/usePluginsTab'
 import { useDialog } from '@/presentation/composables/useDialog'
 import { workspaceFormSchema } from '@/presentation/schemas'
 import type { AppSearchItemAny } from '@/presentation/components/app-search/types'
@@ -20,6 +21,7 @@ import type { AppSearchItemAny } from '@/presentation/components/app-search/type
 const router = useRouter()
 const wsStorer = useWorkspaceStorer()
 const settingsTab = useSettingsTab()
+const pluginsTab = usePluginsTab()
 const dialog = useDialog()
 
 onMounted(async () => {
@@ -125,6 +127,7 @@ function onSelectSearch(payload: AppSearchItemAny) {
                 @create-workspace="onCreateWorkspace"
                 @delete-workspace="onDeleteWorkspace"
                 @open-settings="settingsTab.requestOpen()"
+                @open-plugins="pluginsTab.requestOpen()"
                 @navigate-test-lab="onNavigateTestLab"
                 @select-search="onSelectSearch"
             />
