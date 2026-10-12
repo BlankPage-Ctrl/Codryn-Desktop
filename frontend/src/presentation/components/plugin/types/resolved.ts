@@ -1,7 +1,8 @@
-import type { FEDiscoveredPlugin } from '@/core/entities'
+import type { FEDiscoveredPlugin, FEPluginState } from '@/core/entities'
 
 export interface ResolvedPluginTab {
     discovered: FEDiscoveredPlugin[]
+    states: FEPluginState[]
     loading: boolean
     error: string | null
     onDiscover: () => void

@@ -1,7 +1,8 @@
-import type { FEDiscoveredPlugin } from '@/core/entities'
+import type { FEDiscoveredPlugin, FEPluginState } from '@/core/entities'
 
 export interface PluginTabSchema {
     discovered: FEDiscoveredPlugin[]
+    states: FEPluginState[]
     loading: boolean
     error: string | null
     workspaceId: string

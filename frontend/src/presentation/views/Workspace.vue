@@ -1031,6 +1031,7 @@ function buildSettingsTabSchema(): SettingsTabSchema {
 function buildPluginTabSchema(): PluginTabSchema {
     return createPluginTabSchema({
         discovered: pluginStorer.discovered,
+        states: pluginStorer.plugins,
         loading: pluginStorer.loading,
         error: pluginStorer.error,
         workspaceId: workspaceId.value,
@@ -1040,6 +1041,15 @@ function buildPluginTabSchema(): PluginTabSchema {
         onToggle: (id, enabled) => void pluginActions.setEnabled(workspaceId.value, id, enabled),
     })
 }
+
+watch(
+    () => (contentView.value.type === 'plugins' ? workspaceId.value : null),
+    (wsId) => {
+        if (!wsId) return
+        void pluginActions.refresh(wsId)
+        void pluginActions.discover()
+    },
+)
 
 async function handleDeleteModel(providerId: string, modelId: string) {
     await providerActions.deleteModel(providerId, modelId)

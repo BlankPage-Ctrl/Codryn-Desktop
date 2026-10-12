@@ -4,6 +4,7 @@ import type { ResolvedPluginTab } from '../types/resolved'
 export function resolvePluginTabSchema(schema: PluginTabSchema): ResolvedPluginTab {
     return {
         discovered: schema.discovered,
+        states: schema.states,
         loading: schema.loading,
         error: schema.error,
         onDiscover: schema.onDiscover,

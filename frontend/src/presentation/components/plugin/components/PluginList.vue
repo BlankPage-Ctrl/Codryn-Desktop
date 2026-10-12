@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Plus, Puzzle, Refresh, Trash } from '@iconoir/vue'
-import type { FEDiscoveredPlugin } from '@/core/entities'
+import type { FEDiscoveredPlugin, FEPluginState } from '@/core/entities'
 
-defineProps<{
+const props = defineProps<{
     discovered: FEDiscoveredPlugin[]
+    states: FEPluginState[]
     loading: boolean
     error: string | null
     onDiscover: () => void
@@ -18,7 +19,26 @@ interface PluginStatus {
     hint: string | null
 }
 
+function workspaceState(plugin: FEDiscoveredPlugin): FEPluginState | undefined {
+    return props.states.find((s) => s.id === plugin.id)
+}
+
+function isChecked(plugin: FEDiscoveredPlugin): boolean {
+    const ws = workspaceState(plugin)
+    return ws ? ws.enabled : plugin.enabled
+}
+
 function statusOf(plugin: FEDiscoveredPlugin): PluginStatus {
+    if (plugin.registered && !plugin.enabled) {
+        return { label: 'Disabled', ready: false, hint: 'Disabled for all workspaces' }
+    }
+    const ws = workspaceState(plugin)
+    if (plugin.registered && ws && !ws.enabled) {
+        return { label: 'Disabled', ready: false, hint: 'Disabled in this workspace' }
+    }
+    if (ws && ws.status === 'error') {
+        return { label: 'Error', ready: false, hint: ws.error ?? 'Plugin failed to load' }
+    }
     if (plugin.manifestValid) return { label: 'Ready', ready: true, hint: null }
     const notices = plugin.notices ?? []
     const missing = notices.some((notice) => /no codryn-plugin\.json|not found/i.test(notice))
@@ -60,7 +80,7 @@ function statusOf(plugin: FEDiscoveredPlugin): PluginStatus {
             <div v-for="plugin in discovered" :key="plugin.id" class="plugin-row">
                 <span
                     class="plugin-dot"
-                    :class="{ 'plugin-dot--ready': plugin.manifestValid }"
+                    :class="{ 'plugin-dot--ready': statusOf(plugin).ready }"
                     aria-hidden="true"
                 />
                 <div class="plugin-info">
@@ -68,7 +88,7 @@ function statusOf(plugin: FEDiscoveredPlugin): PluginStatus {
                         <span class="plugin-name">{{ plugin.id }}</span>
                         <span
                             class="plugin-status"
-                            :class="{ 'plugin-status--ready': plugin.manifestValid }"
+                            :class="{ 'plugin-status--ready': statusOf(plugin).ready }"
                             :title="plugin.notices.join('\n')"
                             >{{ statusOf(plugin).label }}</span
                         >
@@ -85,13 +105,13 @@ function statusOf(plugin: FEDiscoveredPlugin): PluginStatus {
                     <label
                         v-if="plugin.registered"
                         class="toggle"
-                        :title="plugin.enabled ? 'Disable' : 'Enable'"
+                        :title="isChecked(plugin) ? 'Disable' : 'Enable'"
                     >
                         <input
                             type="checkbox"
-                            :checked="plugin.enabled"
+                            :checked="isChecked(plugin)"
                             :aria-label="`Toggle ${plugin.id}`"
-                            @change="onToggle(plugin.id, !plugin.enabled)"
+                            @change="onToggle(plugin.id, !isChecked(plugin))"
                         />
                         <span class="toggle-track"></span>
                     </label>

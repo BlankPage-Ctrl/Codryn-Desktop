@@ -1,7 +1,8 @@
-import type { FEDiscoveredPlugin } from '@/core/entities'
+import type { FEDiscoveredPlugin, FEPluginState } from '@/core/entities'
 
 export interface PluginTabParams {
     discovered: FEDiscoveredPlugin[]
+    states: FEPluginState[]
     loading: boolean
     error: string | null
     workspaceId: string
@@ -13,6 +14,7 @@ export interface PluginTabParams {
 
 export interface PluginTabSchema {
     discovered: FEDiscoveredPlugin[]
+    states: FEPluginState[]
     loading: boolean
     error: string | null
     workspaceId: string
@@ -25,6 +27,7 @@ export interface PluginTabSchema {
 export function createPluginTabSchema(params: PluginTabParams): PluginTabSchema {
     return {
         discovered: params.discovered,
+        states: params.states,
         loading: params.loading,
         error: params.error,
         workspaceId: params.workspaceId,

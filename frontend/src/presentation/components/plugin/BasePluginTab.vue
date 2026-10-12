@@ -13,6 +13,7 @@ defineProps<{
         <RegisterForm @register="(id, dir) => resolved.onRegister(id, dir)" />
         <PluginList
             :discovered="resolved.discovered"
+            :states="resolved.states"
             :loading="resolved.loading"
             :error="resolved.error"
             :on-discover="resolved.onDiscover"
