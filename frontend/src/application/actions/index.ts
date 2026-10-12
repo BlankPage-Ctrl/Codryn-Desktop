@@ -131,11 +131,15 @@ export const fileExplorerActions = createFileExplorerActions(
 
 const chatSessionStoreLogic = createChatSessionStoreLogic(() => useChatSessionStorer())
 const feedStreamPort = createFeedStreamPort()
+const shellExecStoreLogic = createShellExecStoreLogic(() => useShellExecStorer())
 const chatSessionEngine = createChatSessionEngine({
     messagesRepo: messagesRepository,
     runsRepo: runsRepository,
     stream: feedStreamPort,
     onState: (chatId, patch) => chatSessionStoreLogic.patch(chatId, patch),
+    onShellsKilled: (toolCallIds) => {
+        for (const toolCallId of toolCallIds) shellExecStoreLogic.markKilledByToolCallId(toolCallId)
+    },
 })
 
 export const chatSessionActions = createChatSessionActions(chatSessionStoreLogic, chatSessionEngine)
@@ -163,7 +167,6 @@ const mcpBusinessLogic = createMcpBusinessLogic({ repo: mcpRepository })
 
 export const mcpActions = createMcpActions(mcpStoreLogic, mcpBusinessLogic)
 
-const shellExecStoreLogic = createShellExecStoreLogic(() => useShellExecStorer())
 const shellExecBusinessLogic = createShellExecBusinessLogic(shellKillRepository)
 
 export const shellExecActions = createShellExecActions(shellExecStoreLogic, shellExecBusinessLogic)

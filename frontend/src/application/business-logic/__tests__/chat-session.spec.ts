@@ -171,9 +171,10 @@ describe('chat-session delta coalescing', () => {
         handlers.onEvent(runClose())
         const atEnd = messagePatches(harness.patches)
         const finalAssistant = atEnd[atEnd.length - 1]!.find((m) => m.id === ASSISTANT_ID)!
+        // run-close settles the dangling slice so no block keeps streaming.
         expect(finalAssistant.blocks).toEqual([
             { kind: 'text', sliceId: 'txt-0', text: 'ab', closed: true },
-            { kind: 'text', sliceId: 'txt-0', text: 'c', closed: false },
+            { kind: 'text', sliceId: 'txt-0', text: 'c', closed: true },
         ])
         // Stale frame callbacks superseded by the run-close flush notify nothing.
         const countAtClose = harness.patches.length
@@ -632,5 +633,72 @@ describe('chat-session token usage', () => {
         })
         await engine.fetchUsage('ws-1', 'chat-1')
         expect(patches).toEqual([])
+    })
+})
+
+describe('chat-session stop', () => {
+    it('settles open think/work blocks and reports running shells', async () => {
+        const harness = createHarness()
+        const killed: string[][] = []
+        const engineWithShellHook = createChatSessionEngine({
+            messagesRepo: {
+                loadHistory: async () => [],
+            } as never,
+            runsRepo: {
+                list: async () => [],
+                start: async () => ({ runId: 'run-1' }),
+                cancel: async () => true,
+            } as never,
+            stream: {
+                openStream: (
+                    _workspaceId: string,
+                    _chatId: string,
+                    _runId: string,
+                    _afterSeq: number,
+                    handlers: CapturedHandlers,
+                ) => {
+                    capturedRef.current = handlers
+                    return () => {}
+                },
+            } as never,
+            onState: (chatId: string, patch: ChatSessionStatePatch) => {
+                harness.patches.push({ chatId, patch })
+            },
+            onShellsKilled: (ids) => {
+                killed.push(ids)
+            },
+        })
+        const capturedRef = { current: null as unknown as CapturedHandlers }
+        await engineWithShellHook.sendMessage('ws-1', 'chat-1', 'hello')
+        const handlers = capturedRef.current
+        handlers.onEvent({
+            type: 'think-open',
+            messageId: ASSISTANT_ID,
+            sliceId: 'r1',
+            role: 'assistant',
+        } as FeedEvent)
+        handlers.onEvent({
+            type: 'work-active',
+            messageId: ASSISTANT_ID,
+            sliceId: 'c1',
+            callId: 'c1',
+            implement: 'run_shell',
+            input: { command: 'sleep 30' },
+        } as FeedEvent)
+
+        await engineWithShellHook.stop('chat-1')
+
+        const all = messagePatches(harness.patches)
+        const last = all[all.length - 1]!
+        const assistant = last.find((m) => m.id === ASSISTANT_ID)!
+        expect(assistant.blocks).toContainEqual(
+            expect.objectContaining({ kind: 'think', closed: true }),
+        )
+        expect(assistant.blocks).toContainEqual(
+            expect.objectContaining({ kind: 'work', state: 'cancelled' }),
+        )
+        expect(killed).toEqual([['c1']])
+        const statuses = harness.patches.map((p) => p.patch.status)
+        expect(statuses[statuses.length - 1]).toBe('ready')
     })
 })

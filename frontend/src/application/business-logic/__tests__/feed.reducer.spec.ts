@@ -270,4 +270,59 @@ describe('applyFeedEvent', () => {
         ])
         expect(messages[0]!.blocks).toEqual([{ kind: 'stage', stage: 2, landed: 'tool-calls' }])
     })
+
+    it('settles open think and work blocks when the run is cancelled', () => {
+        const messages = reduce([
+            { type: 'think-open', messageId: 'a1', sliceId: 'r1', role: 'assistant' },
+            { type: 'think-delta', messageId: 'a1', sliceId: 'r1', delta: 'hmm', role: 'assistant' },
+            {
+                type: 'work-queued',
+                messageId: 'a1',
+                sliceId: 'c1',
+                callId: 'c1',
+                implement: 'run_shell',
+            },
+            {
+                type: 'work-active',
+                messageId: 'a1',
+                sliceId: 'c1',
+                callId: 'c1',
+                implement: 'run_shell',
+                input: { command: 'sleep 30' },
+            },
+            { type: 'run-close', runId: 'run-1', status: 'cancelled' } as FeedEvent,
+        ])
+        const think = messages[0]!.blocks[0]!
+        expect(think).toMatchObject({ kind: 'think', closed: true })
+        const work = messages[0]!.blocks[1]!
+        expect(work).toMatchObject({ kind: 'work', state: 'cancelled' })
+    })
+
+    it('settles leftover work as ok when the run finishes done', () => {
+        const messages = reduce([
+            {
+                type: 'work-queued',
+                messageId: 'a1',
+                sliceId: 'c1',
+                callId: 'c1',
+                implement: 'read_file',
+            },
+            { type: 'run-close', runId: 'run-1', status: 'done' } as FeedEvent,
+        ])
+        expect(messages[0]!.blocks[0]).toMatchObject({ kind: 'work', state: 'ok' })
+    })
+
+    it('settles leftover work as bad on oops', () => {
+        const messages = reduce([
+            {
+                type: 'work-active',
+                messageId: 'a1',
+                sliceId: 'c1',
+                callId: 'c1',
+                implement: 'run_shell',
+            },
+            { type: 'oops', message: 'boom' } as FeedEvent,
+        ])
+        expect(messages[0]!.blocks[0]).toMatchObject({ kind: 'work', state: 'bad' })
+    })
 })

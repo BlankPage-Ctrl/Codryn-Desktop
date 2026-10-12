@@ -1,4 +1,11 @@
-import type { FeedBlock, FeedEvent, FeedMessage, FeedWorkBlock } from '@/core/entities'
+import type {
+    FeedBlock,
+    FeedEvent,
+    FeedMessage,
+    FeedRunCloseStatus,
+    FeedWorkBlock,
+    FeedWorkState,
+} from '@/core/entities'
 import { toFeedRole } from '@/core/entities'
 import { isHiddenToolName } from '@/presentation/components/chat/helpers/knownTools'
 
@@ -48,6 +55,53 @@ function findLastTextBlock(
 }
 
 /**
+ * Settles blocks left open when a run terminates without their terminal
+ * frame (e.g. the user cancelled mid-stream). Pure: never mutates input.
+ *
+ * - open text/think slices are closed so they render as done, not streaming.
+ * - in-flight work blocks settle to `cancelled` (or `bad` on failure, `ok`
+ *   when the run actually finished) so the streaming animation stops.
+ */
+export function settleOpenBlocks(
+    messages: FeedMessage[],
+    status: FeedRunCloseStatus | 'oops' = 'cancelled',
+    errorText?: string,
+): FeedMessage[] {
+    const workState: FeedWorkState =
+        status === 'done' ? 'ok' : status === 'failed' || status === 'oops' ? 'bad' : 'cancelled'
+    let changed = false
+    const next = messages.map((msg) => {
+        let msgChanged = false
+        const blocks = msg.blocks.map((block) => {
+            if ((block.kind === 'text' || block.kind === 'think') && !block.closed) {
+                msgChanged = true
+                return { ...block, closed: true }
+            }
+            if (
+                block.kind === 'work' &&
+                (block.state === 'queued' || block.state === 'active')
+            ) {
+                msgChanged = true
+                const settled: FeedWorkBlock = { ...block, state: workState }
+                if (
+                    workState === 'bad' &&
+                    settled.errorText === undefined &&
+                    errorText !== undefined
+                ) {
+                    settled.errorText = errorText
+                }
+                return settled
+            }
+            return block
+        })
+        if (!msgChanged) return msg
+        changed = true
+        return { ...msg, blocks }
+    })
+    return changed ? next : messages
+}
+
+/**
  * Reduces one chat-feed event into the message list. Pure: never mutates
  * its input. Used for both live stream chunks and replayed history
  * (history events are completed open+delta+close triples with `role`).
@@ -61,9 +115,23 @@ export function applyFeedEvent(messages: FeedMessage[], event: FeedEvent): FeedM
             return list
         }
 
-        case 'run-close':
-        case 'oops':
-            return messages
+        case 'run-close': {
+            const status = event.status as FeedRunCloseStatus | undefined
+            const settled = settleOpenBlocks(
+                messages,
+                status ?? 'cancelled',
+                typeof event.message === 'string' ? event.message : undefined,
+            )
+            return settled
+        }
+        case 'oops': {
+            const settled = settleOpenBlocks(
+                messages,
+                'oops',
+                typeof event.message === 'string' ? event.message : undefined,
+            )
+            return settled
+        }
 
         case 'text-open':
         case 'think-open': {

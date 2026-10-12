@@ -80,4 +80,29 @@ describe('shell-exec store logic', () => {
 
         expect(states.get('tool-1')?.status).toBe('running')
     })
+
+    it('markKilledByToolCallId stops the matching running shell only', () => {
+        const { logic, states } = setup()
+        logic.apply(start('tool-1', 'exec-1'))
+        logic.apply(start('tool-2', 'exec-2'))
+
+        logic.markKilledByToolCallId('tool-1')
+
+        expect(states.get('tool-1')?.status).toBe('error')
+        expect(states.get('tool-1')?.error?.code).toBe('SHELL_KILLED')
+        expect(states.get('tool-2')?.status).toBe('running')
+    })
+
+    it('markKilledByToolCallId leaves settled shells alone', () => {
+        const { logic, states } = setup()
+        states.set(
+            'tool-9',
+            createEmptyShellExecState({ executionId: 'exec-9', toolCallId: 'tool-9', status: 'done' }),
+        )
+
+        logic.markKilledByToolCallId('tool-9')
+
+        expect(states.get('tool-9')?.status).toBe('done')
+        expect(states.get('tool-9')?.error).toBeNull()
+    })
 })

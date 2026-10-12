@@ -68,7 +68,7 @@ export type FeedThinkBlock = {
     closed: boolean
 }
 
-export type FeedWorkState = 'queued' | 'active' | 'ok' | 'bad'
+export type FeedWorkState = 'queued' | 'active' | 'ok' | 'bad' | 'cancelled'
 
 export type FeedWorkBlock = {
     kind: 'work'

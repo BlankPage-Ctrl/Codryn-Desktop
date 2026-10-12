@@ -8,7 +8,7 @@ import type {
     RevertFileRestore,
     RevertPreview,
 } from '@/core/entities'
-import { applyFeedEvent } from './feed.reducer'
+import { applyFeedEvent, settleOpenBlocks } from './feed.reducer'
 import { FeedCancelledError } from '@/data/stream'
 
 export interface ChatSessionStatePatch {
@@ -25,6 +25,7 @@ export interface ChatSessionDeps {
     runsRepo: RunRepository
     stream: FeedStreamPort
     onState: (chatId: string, patch: ChatSessionStatePatch) => void
+    onShellsKilled?: (toolCallIds: string[]) => void
 }
 
 export interface SendEditResult {
@@ -415,6 +416,33 @@ export function createChatSessionEngine(deps: ChatSessionDeps): ChatSessionEngin
         if (active) {
             active.detach()
             watches.delete(chatId)
+        }
+        // Optimistically close whatever the stream left open: after detach
+        // no more frames arrive, so without this the thinking/tool blocks
+        // would keep their streaming animation forever.
+        const prev = cache.get(chatId)
+        if (prev !== undefined) {
+            const runningShells: string[] = []
+            for (const msg of prev) {
+                for (const block of msg.blocks) {
+                    if (
+                        block.kind === 'work' &&
+                        block.implement === 'run_shell' &&
+                        (block.state === 'queued' || block.state === 'active')
+                    ) {
+                        runningShells.push(block.callId)
+                    }
+                }
+            }
+            const settled = settleOpenBlocks(prev, 'cancelled')
+            if (settled !== prev) {
+                cancelCoalesced(chatId)
+                cache.set(chatId, settled)
+                deps.onState(chatId, { messages: [...settled] })
+            } else {
+                cancelCoalesced(chatId)
+            }
+            if (runningShells.length > 0) deps.onShellsKilled?.(runningShells)
         }
         deps.onState(chatId, { status: 'ready', isLoading: false, activeRunId: undefined })
     }
