@@ -8,6 +8,7 @@ export type {
     BlockPartSchema,
     ResolvedBlockPart,
     BlockPartAction,
+    BlockPartTitleSegment,
 } from './types/schema'
 
 export { resolveBlockPartSchema } from './resolver/resolveBlockPartSchema'

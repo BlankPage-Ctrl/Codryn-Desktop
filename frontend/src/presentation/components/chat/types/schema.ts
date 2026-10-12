@@ -123,7 +123,7 @@ export interface ReasoningPartSchema {
     partId?: string
 }
 
-export type FeedWorkPartState = 'queued' | 'active' | 'ok' | 'bad'
+export type FeedWorkPartState = 'queued' | 'active' | 'ok' | 'bad' | 'cancelled'
 
 export interface ToolCallPartSchema {
     toolName: string

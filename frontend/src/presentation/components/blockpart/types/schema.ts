@@ -27,8 +27,16 @@ export interface BlockPartAction {
     onClick: (e: MouseEvent) => void | Promise<void>
 }
 
+export interface BlockPartTitleSegment {
+    text: string
+    tone?: 'default' | 'muted' | 'red' | 'green'
+    tooltip?: string
+}
+
 export interface BlockPartSchema {
     title?: string
+    titleParts?: BlockPartTitleSegment[]
+    titleTooltip?: string
     icon?: Component | string
     variant?: BlockPartVariant
     collapsible?: boolean
@@ -44,6 +52,8 @@ export interface BlockPartSchema {
 
 export interface ResolvedBlockPart {
     title: string
+    titleParts: BlockPartTitleSegment[]
+    titleTooltip?: string
     icon?: Component | string
     variant: BlockPartVariant
     collapsible: boolean

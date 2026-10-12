@@ -50,7 +50,7 @@ export function resolveReasoningPartSchema(schema: ReasoningPartSchema): Resolve
 
 export function resolveToolCallPartSchema(schema: ToolCallPartSchema): ResolvedToolCallPart {
     const isRunning = schema.state === 'queued' || schema.state === 'active'
-    const isDone = schema.state === 'ok'
+    const isDone = schema.state === 'ok' || schema.state === 'cancelled'
     const isError = schema.state === 'bad'
 
     return {
@@ -64,7 +64,13 @@ export function resolveToolCallPartSchema(schema: ToolCallPartSchema): ResolvedT
         isRunning,
         isDone,
         isError,
-        statusText: isRunning ? 'Running...' : isError ? 'Failed' : 'Done',
+        statusText: isRunning
+            ? 'Running...'
+            : isError
+              ? 'Failed'
+              : schema.state === 'cancelled'
+                ? 'Cancelled'
+                : 'Done',
     }
 }
 

@@ -11,6 +11,7 @@ import type {
 } from '../../types/schema'
 import { resolveToolCallPartSchema } from '../../resolver/resolvePartsSchema'
 import { useShellExecStorer, useThemeStorer, useAppearanceStorer } from '@/application/stores'
+import { useWorkspaceStorer } from '@/application/stores/workspace.storer'
 import { BlockPart } from '@/presentation/components/blockpart'
 import { createToolCallSchema } from '@/presentation/schemas'
 import { isKnownToolName } from '../../helpers/knownTools'
@@ -26,6 +27,8 @@ const resolved = computed(() => resolveToolCallPartSchema(props.schema))
 const shellStore = useShellExecStorer()
 const themeStore = useThemeStorer()
 const appearanceStore = useAppearanceStorer()
+const workspaceStore = useWorkspaceStorer()
+const workspaceRoot = computed(() => workspaceStore.selectedWorkspace?.projectPath)
 const isDark = computed(() => themeStore.activeThemeId === 'night')
 
 interface RunShellOutput {
@@ -307,6 +310,8 @@ const blockSchema = computed(() =>
         input: resolved.value.input,
         output: resolved.value.output,
         errorText: resolved.value.errorText,
+        ...(workspaceRoot.value ? { workspaceRoot: workspaceRoot.value } : {}),
+        ...(resolved.value.frontend !== undefined ? { frontend: resolved.value.frontend } : {}),
         ...(shellCancelAction.value ? { actions: [shellCancelAction.value] } : {}),
     }),
 )

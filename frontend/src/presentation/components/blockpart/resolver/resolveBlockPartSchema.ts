@@ -6,6 +6,8 @@ export function resolveBlockPartSchema(schema: BlockPartSchema): ResolvedBlockPa
 
     return {
         title: schema.title ?? '',
+        titleParts: schema.titleParts ?? [],
+        ...(schema.titleTooltip !== undefined ? { titleTooltip: schema.titleTooltip } : {}),
         icon: schema.icon,
         variant: schema.variant ?? 'default',
         collapsible: schema.collapsible ?? true,

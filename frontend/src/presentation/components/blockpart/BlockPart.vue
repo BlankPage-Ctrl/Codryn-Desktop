@@ -102,6 +102,8 @@ function toggleView(mode: BlockPartViewMode) {
     >
         <BlockHeader
             :title="resolved.title"
+            :title-parts="resolved.titleParts"
+            :title-tooltip="resolved.titleTooltip"
             :icon="resolved.icon"
             :collapsible="resolved.collapsible"
             :expanded="expanded"

@@ -12,8 +12,25 @@ import {
     InputSearch,
 } from '@iconoir/vue'
 import type { Component } from 'vue'
-import type { BlockPartAction, BlockPartSchema } from '@/presentation/components/blockpart'
+import type {
+    BlockPartAction,
+    BlockPartSchema,
+    BlockPartTitleSegment,
+} from '@/presentation/components/blockpart'
 import { TOOL_LABELS } from '@/presentation/components/chat/helpers/knownTools'
+import {
+    countContentLines,
+    countDiffLines,
+    formatReadWindow,
+    inputCommand,
+    inputOverwrite,
+    inputPath,
+    parseReadWindow,
+    relativizePath,
+    splitDirFile,
+    truncateCommand,
+    truncateHead,
+} from '@/presentation/components/chat/helpers/toolTitle'
 
 export interface ToolCallSchemaParams {
     toolName: string
@@ -23,6 +40,129 @@ export interface ToolCallSchemaParams {
     output?: unknown
     errorText?: string
     actions?: BlockPartAction[]
+    workspaceRoot?: string
+    frontend?: unknown
+}
+
+interface RichTitle {
+    title: string
+    titleParts: BlockPartTitleSegment[]
+    titleTooltip: string
+}
+
+function frontendField(params: ToolCallSchemaParams, key: string): unknown {
+    if (params.frontend && typeof params.frontend === 'object') {
+        return (params.frontend as Record<string, unknown>)[key]
+    }
+    return undefined
+}
+
+function frontendString(params: ToolCallSchemaParams, key: string): string | null {
+    const value = frontendField(params, key)
+    if (typeof value !== 'string' || value.length === 0) return null
+    return value
+}
+
+function toolPath(params: ToolCallSchemaParams): string | null {
+    const fromFrontend = frontendString(params, 'path')
+    if (fromFrontend && fromFrontend.trim().length > 0) return fromFrontend
+    return inputPath(params.input)
+}
+
+function shortPath(fullPath: string, workspaceRoot?: string): { rel: string; short: string } {
+    const rel = relativizePath(fullPath, workspaceRoot)
+    return { rel, short: truncateHead(rel) }
+}
+
+function getEditTitle(params: ToolCallSchemaParams): RichTitle | null {
+    const path = toolPath(params)
+    if (!path) return null
+    const { rel, short } = shortPath(path, params.workspaceRoot)
+    const diff = frontendString(params, 'diff') ?? diffFromOutput(params.output)
+    const counts = diff ? countDiffLines(diff) : null
+    const countText =
+        counts && (counts.added > 0 || counts.removed > 0)
+            ? ` -${counts.removed} +${counts.added}`
+            : ''
+    const title = `Edit ${short}${countText}`
+    const titleParts: BlockPartTitleSegment[] = [
+        { text: 'Edit ' },
+        { text: short, tooltip: rel },
+    ]
+    if (counts && (counts.added > 0 || counts.removed > 0)) {
+        titleParts.push({ text: ` -${counts.removed}`, tone: 'red' })
+        titleParts.push({ text: ` +${counts.added}`, tone: 'green' })
+    }
+    return { title, titleParts, titleTooltip: `Edit ${rel}${countText}` }
+}
+
+function diffFromOutput(output: unknown): string | null {
+    if (output && typeof output === 'object' && 'diff' in output) {
+        const diff = (output as Record<string, unknown>).diff
+        if (typeof diff === 'string' && diff.length > 0) return diff
+    }
+    return null
+}
+
+function getReadTitle(params: ToolCallSchemaParams): RichTitle | null {
+    const path = toolPath(params)
+    if (!path) return null
+    const { rel, short } = shortPath(path, params.workspaceRoot)
+    const chips = formatReadWindow(parseReadWindow(params.input))
+    const suffix = chips.length > 0 ? ` ${chips.join(' ')}` : ''
+    const title = `Read ${short}${suffix}`
+    return {
+        title,
+        titleParts: [
+            { text: 'Read ' },
+            { text: short, tooltip: rel },
+            ...(suffix ? [{ text: suffix, tone: 'muted' as const }] : []),
+        ],
+        titleTooltip: `Read ${rel}${suffix}`,
+    }
+}
+
+function getCreateTitle(params: ToolCallSchemaParams): RichTitle | null {
+    const path = toolPath(params)
+    if (!path) return null
+    const { rel, short } = shortPath(path, params.workspaceRoot)
+    const { dir, file } = splitDirFile(rel)
+    const dirShort = dir ? truncateHead(dir) : ''
+    const content = frontendString(params, 'content')
+    const totalLines = frontendField(params, 'totalLines')
+    const lines =
+        (typeof totalLines === 'number' && Number.isFinite(totalLines) ? totalLines : null) ??
+        (content != null ? countContentLines(content) : null)
+    const countText = lines != null ? ` +${lines}` : ''
+    const overwrite = inputOverwrite(params.input)
+    const title = overwrite
+        ? `Replace ${file} at ${dirShort || short} with${countText} new line of code`
+        : `Create ${file} at ${dirShort || short} with${countText}`
+    return {
+        title,
+        titleParts: [
+            { text: overwrite ? 'Replace ' : 'Create ' },
+            { text: file },
+            { text: ' at ' },
+            { text: dirShort || short, tooltip: dir ? `${rel}` : rel },
+            { text: ` with${countText}`, tone: 'muted' },
+            ...(overwrite ? [{ text: ' new line of code', tone: 'muted' as const }] : []),
+        ],
+        titleTooltip: overwrite ? `Replace ${rel} with${countText} new line of code` : `Create ${rel} with${countText}`,
+    }
+}
+
+function getShellTitle(params: ToolCallSchemaParams, isRunning: boolean): RichTitle | null {
+    const command = inputCommand(params.input) ?? frontendString(params, 'command')
+    if (!command) return null
+    const short = truncateCommand(command)
+    const verb = isRunning ? 'Run' : 'Ran'
+    const title = `${verb} ${short}`
+    return {
+        title,
+        titleParts: [{ text: `${verb} ` }, { text: short, tooltip: command }],
+        titleTooltip: `${verb} ${command}`,
+    }
 }
 
 const TOOL_VIEW_TOGGLE: Record<string, boolean> = {
@@ -149,7 +289,7 @@ function getGrepTitle(input: unknown): string | null {
 }
 
 export function createToolCallSchema(params: ToolCallSchemaParams): BlockPartSchema {
-    // Feed work states: queued | active (running) vs ok | bad (settled).
+    // Feed work states: queued | active (running) vs ok | bad | cancelled (settled).
     const isRunning = params.state === 'queued' || params.state === 'active'
     const isSkill = params.toolName === 'skill'
     const isSearch = params.toolName === 'insight_search'
@@ -158,28 +298,47 @@ export function createToolCallSchema(params: ToolCallSchemaParams): BlockPartSch
     const isGrep = params.toolName === 'grep'
     const isStatic = isSkill || isTrace || isGrep
 
-    const title = isSkill
-        ? getSkillTitle(params.input)
-        : isSearch
-          ? (getInsightSearchTitle(params.input) ??
-            (TOOL_LABELS as Record<string, string>)[params.toolName] ??
-            params.toolName)
-          : isGraph
-            ? (getInsightGraphTitle(params.input) ??
-              (TOOL_LABELS as Record<string, string>)[params.toolName] ??
-              params.toolName)
-            : isTrace
-              ? (getInsightTraceTitle(params.input) ??
+    const rich: RichTitle | null =
+        params.toolName === 'edit_file'
+            ? getEditTitle(params)
+            : params.toolName === 'read_file'
+              ? getReadTitle(params)
+              : params.toolName === 'create_file'
+                ? getCreateTitle(params)
+                : params.toolName === 'run_shell'
+                  ? getShellTitle(params, isRunning)
+                  : null
+
+    const title =
+        rich?.title ??
+        (isSkill
+            ? getSkillTitle(params.input)
+            : isSearch
+              ? (getInsightSearchTitle(params.input) ??
                 (TOOL_LABELS as Record<string, string>)[params.toolName] ??
                 params.toolName)
-              : isGrep
-                ? (getGrepTitle(params.input) ??
+              : isGraph
+                ? (getInsightGraphTitle(params.input) ??
                   (TOOL_LABELS as Record<string, string>)[params.toolName] ??
                   params.toolName)
-                : ((TOOL_LABELS as Record<string, string>)[params.toolName] ?? params.toolName)
+                : isTrace
+                  ? (getInsightTraceTitle(params.input) ??
+                    (TOOL_LABELS as Record<string, string>)[params.toolName] ??
+                    params.toolName)
+                  : isGrep
+                    ? (getGrepTitle(params.input) ??
+                      (TOOL_LABELS as Record<string, string>)[params.toolName] ??
+                      params.toolName)
+                    : ((TOOL_LABELS as Record<string, string>)[params.toolName] ?? params.toolName))
 
     return {
         title,
+        ...(rich
+            ? {
+                  titleParts: rich.titleParts,
+                  titleTooltip: rich.titleTooltip,
+              }
+            : {}),
         icon: TOOL_ICONS[params.toolName] ?? Wrench,
         variant: 'default',
         collapsible: isStatic ? false : true,

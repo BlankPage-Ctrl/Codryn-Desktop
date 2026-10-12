@@ -2,11 +2,18 @@
 import { computed } from 'vue'
 import { Eye, Code } from '@iconoir/vue'
 import type { Component } from 'vue'
-import type { BlockPartViewMode, BlockPartStatus, BlockPartAction } from '../types/schema'
+import type {
+    BlockPartTitleSegment,
+    BlockPartViewMode,
+    BlockPartStatus,
+    BlockPartAction,
+} from '../types/schema'
 import BlockActionButton from './BlockActionButton.vue'
 
 const props = defineProps<{
     title?: string
+    titleParts?: BlockPartTitleSegment[]
+    titleTooltip?: string
     icon?: Component | string
     collapsible: boolean
     expanded: boolean
@@ -24,6 +31,20 @@ const emit = defineEmits<{
 }>()
 
 const isComponent = computed(() => typeof props.icon === 'object' && props.icon !== null)
+const hasTitleParts = computed(() => (props.titleParts?.length ?? 0) > 0)
+
+function segmentClass(segment: BlockPartTitleSegment): string {
+    switch (segment.tone) {
+        case 'red':
+            return 'block-title__seg--red'
+        case 'green':
+            return 'block-title__seg--green'
+        case 'muted':
+            return 'block-title__seg--muted'
+        default:
+            return ''
+    }
+}
 const iconLabel = computed(() => {
     if (!props.icon) return ''
     return typeof props.icon === 'string' ? props.icon : ''
@@ -65,7 +86,19 @@ function handleHeaderKeydown(e: KeyboardEvent) {
                 <component :is="icon" width="14.8" height="14.8" />
             </span>
             <span v-else-if="iconLabel" class="block-icon-label">{{ iconLabel }}</span>
-            <span v-if="title" class="block-title">{{ title }}</span>
+            <span v-if="hasTitleParts" class="block-title" :title="titleTooltip">
+                <span
+                    v-for="(segment, i) in titleParts"
+                    :key="i"
+                    class="block-title__seg"
+                    :class="segmentClass(segment)"
+                    :title="segment.tooltip ?? undefined"
+                    >{{ segment.text }}</span
+                >
+            </span>
+            <span v-else-if="title" class="block-title" :title="titleTooltip ?? undefined">{{
+                title
+            }}</span>
         </div>
         <div
             v-if="(actions && actions.length) || (viewToggle && (hasPreview || hasSource))"
@@ -214,6 +247,20 @@ function handleHeaderKeydown(e: KeyboardEvent) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.block-title__seg--red {
+    color: var(--text-danger, #ef4444);
+    opacity: 1;
+}
+
+.block-title__seg--green {
+    color: var(--text-success, #22c55e);
+    opacity: 1;
+}
+
+.block-title__seg--muted {
+    opacity: 0.6;
 }
 
 .view-toggle-btn {
