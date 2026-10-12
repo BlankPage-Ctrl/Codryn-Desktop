@@ -374,6 +374,7 @@ export function createChatSessionEngine(deps: ChatSessionDeps): ChatSessionEngin
             watches.delete(chatId)
         }
         cancelCoalesced(chatId)
+        void fetchUsage(workspaceId, chatId)
         // Surgical tail-drop: the backend deleted the edited user message
         // plus everything after it and told us exactly which ids are gone.
         // Filter them out of the local cache instead of refetching the full
