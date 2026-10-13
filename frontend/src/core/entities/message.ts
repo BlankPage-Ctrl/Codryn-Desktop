@@ -67,6 +67,27 @@ export interface MessageTokenUsage extends TokenUsageSum {
     messageId: string
 }
 
+export interface RunStep {
+    id: string
+    messageId: string
+    chatId: string
+    runId: string
+    stepIndex: number
+    finishReason: string | null
+    inputTokens: number | null
+    outputTokens: number | null
+    totalTokens: number | null
+    modelId: string | null
+    startedAtMs: number | null
+    finishedAtMs: number | null
+    createdAt: string
+}
+
+export interface ChatRunSteps {
+    chatId: string
+    steps: RunStep[]
+}
+
 /**
  * Fallback context limit used when the active model reports no input
  * limit. Mirrors the backend DEFAULT_MAX_INPUT_TOKENS (128K).

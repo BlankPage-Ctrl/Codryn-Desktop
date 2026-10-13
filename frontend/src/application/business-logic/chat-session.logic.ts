@@ -249,8 +249,20 @@ export function createChatSessionEngine(deps: ChatSessionDeps): ChatSessionEngin
 
     async function fetchUsage(workspaceId: string, chatId: string): Promise<void> {
         try {
-            const usage = await deps.messagesRepo.getChatUsage(workspaceId, chatId)
-            deps.onState(chatId, { usage })
+            const result = await deps.messagesRepo.getChatUsage(workspaceId, chatId)
+            const steps = result?.steps ?? []
+            const last = steps[steps.length - 1]
+            const inputTokens = last?.inputTokens ?? 0
+            const outputTokens = last?.outputTokens ?? 0
+            deps.onState(chatId, {
+                usage: {
+                    chatId,
+                    inputTokens,
+                    outputTokens,
+                    totalTokens: last?.totalTokens ?? inputTokens + outputTokens,
+                    steps: steps.length,
+                },
+            })
         } catch {
             // Keep the previous value; the footer indicator stays stale
             // rather than failing the surrounding chat flow.

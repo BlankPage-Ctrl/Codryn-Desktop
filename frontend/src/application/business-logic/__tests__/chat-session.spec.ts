@@ -614,17 +614,76 @@ describe('chat-session token usage', () => {
         return { engine, patches }
     }
 
-    it('patches usage after the backend responds', async () => {
-        const usage = {
+    it('patches usage from the last run step after the backend responds', async () => {
+        const { engine, patches } = usageHarness(async () => ({
             chatId: 'chat-1',
-            inputTokens: 6000,
-            outputTokens: 2000,
-            totalTokens: 8000,
-            steps: 3,
-        }
-        const { engine, patches } = usageHarness(async () => usage)
+            steps: [
+                {
+                    id: 's-1',
+                    messageId: 'm-1',
+                    chatId: 'chat-1',
+                    runId: 'run-1',
+                    stepIndex: 0,
+                    finishReason: 'tool-calls',
+                    inputTokens: 4000,
+                    outputTokens: 100,
+                    totalTokens: 4100,
+                    modelId: 'mock-model',
+                    startedAtMs: 1000,
+                    finishedAtMs: 2000,
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                },
+                {
+                    id: 's-2',
+                    messageId: 'm-1',
+                    chatId: 'chat-1',
+                    runId: 'run-1',
+                    stepIndex: 1,
+                    finishReason: 'stop',
+                    inputTokens: 6000,
+                    outputTokens: 2000,
+                    totalTokens: 8000,
+                    modelId: 'mock-model',
+                    startedAtMs: 2000,
+                    finishedAtMs: 3000,
+                    createdAt: '2026-01-01T00:00:01.000Z',
+                },
+            ],
+        }))
         await engine.fetchUsage('ws-1', 'chat-1')
-        expect(patches).toEqual([{ chatId: 'chat-1', patch: { usage } }])
+        expect(patches).toEqual([
+            {
+                chatId: 'chat-1',
+                patch: {
+                    usage: {
+                        chatId: 'chat-1',
+                        inputTokens: 6000,
+                        outputTokens: 2000,
+                        totalTokens: 8000,
+                        steps: 2,
+                    },
+                },
+            },
+        ])
+    })
+
+    it('patches zero usage when the chat has no run steps yet', async () => {
+        const { engine, patches } = usageHarness(async () => ({ chatId: 'chat-1', steps: [] }))
+        await engine.fetchUsage('ws-1', 'chat-1')
+        expect(patches).toEqual([
+            {
+                chatId: 'chat-1',
+                patch: {
+                    usage: {
+                        chatId: 'chat-1',
+                        inputTokens: 0,
+                        outputTokens: 0,
+                        totalTokens: 0,
+                        steps: 0,
+                    },
+                },
+            },
+        ])
     })
 
     it('keeps the previous value when the fetch fails', async () => {

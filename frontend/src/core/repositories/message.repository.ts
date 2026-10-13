@@ -1,5 +1,5 @@
 import type {
-    ChatTokenUsage,
+    ChatRunSteps,
     FeedEvent,
     MessageTokenUsage,
     RevertPreview,
@@ -8,7 +8,7 @@ import type {
 
 export interface MessageRepository {
     loadHistory(workspaceId: string, chatId: string): Promise<FeedEvent[]>
-    getChatUsage(workspaceId: string, chatId: string): Promise<ChatTokenUsage>
+    getChatUsage(workspaceId: string, chatId: string): Promise<ChatRunSteps>
     getMessageUsage(
         workspaceId: string,
         chatId: string,

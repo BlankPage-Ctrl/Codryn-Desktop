@@ -6,7 +6,7 @@ import {
     RevertMessages,
 } from '../../../wailsjs/go/messages/Service'
 import type {
-    ChatTokenUsage,
+    ChatRunSteps,
     FeedEvent,
     MessageTokenUsage,
     RevertPreview,
@@ -18,7 +18,7 @@ export const messagesRepository: MessageRepository = {
     loadHistory: (workspaceId: string, chatId: string) =>
         LoadHistory(workspaceId, chatId) as unknown as Promise<FeedEvent[]>,
     getChatUsage: (workspaceId: string, chatId: string) =>
-        GetChatUsage(workspaceId, chatId) as unknown as Promise<ChatTokenUsage>,
+        GetChatUsage(workspaceId, chatId) as unknown as Promise<ChatRunSteps>,
     getMessageUsage: (workspaceId: string, chatId: string, messageId: string) =>
         GetMessageUsage(workspaceId, chatId, messageId) as unknown as Promise<MessageTokenUsage>,
     revert: (workspaceId: string, chatId: string, messageId: string, restoreFiles = false) =>

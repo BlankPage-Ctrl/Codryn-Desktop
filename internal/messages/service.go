@@ -51,10 +51,29 @@ type TokenUsageSum struct {
 	Steps        int `json:"steps"`
 }
 
-// ChatTokenUsage mirrors the backend get.chat-usage result JSON shape.
-type ChatTokenUsage struct {
-	TokenUsageSum
-	ChatID string `json:"chatId"`
+// RunStep mirrors one backend message_run_steps row (Codryn
+// src/messages/schemas/message_run_steps.ts). Token counters stay nil
+// when the provider reported nothing for that step.
+type RunStep struct {
+	ID            string  `json:"id"`
+	MessageID     string  `json:"messageId"`
+	ChatID        string  `json:"chatId"`
+	RunID         string  `json:"runId"`
+	StepIndex     int     `json:"stepIndex"`
+	FinishReason  *string `json:"finishReason"`
+	InputTokens   *int    `json:"inputTokens"`
+	OutputTokens  *int    `json:"outputTokens"`
+	TotalTokens   *int    `json:"totalTokens"`
+	ModelID       *string `json:"modelId"`
+	StartedAtMs   *int64  `json:"startedAtMs"`
+	FinishedAtMs  *int64  `json:"finishedAtMs"`
+	CreatedAt     string  `json:"createdAt"`
+}
+
+// ChatRunSteps mirrors the backend get.chat-usage result JSON shape.
+type ChatRunSteps struct {
+	ChatID string    `json:"chatId"`
+	Steps  []RunStep `json:"steps"`
 }
 
 // MessageTokenUsage mirrors the backend get.message-usage result JSON shape.
@@ -63,9 +82,9 @@ type MessageTokenUsage struct {
 	MessageID string `json:"messageId"`
 }
 
-// GetChatUsage returns aggregated token usage for the whole chat.
-func (s *Service) GetChatUsage(workspaceID, chatID string) (ChatTokenUsage, error) {
-	return client.DoOK[ChatTokenUsage](s.c, "GET", "/workspaces/"+workspaceID+"/chats/"+chatID+"/usage", nil, nil)
+// GetChatUsage returns the stored run steps for the whole chat.
+func (s *Service) GetChatUsage(workspaceID, chatID string) (ChatRunSteps, error) {
+	return client.DoOK[ChatRunSteps](s.c, "GET", "/workspaces/"+workspaceID+"/chats/"+chatID+"/usage", nil, nil)
 }
 
 // GetMessageUsage returns aggregated token usage for one message.

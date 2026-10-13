@@ -687,25 +687,73 @@ export namespace mcp {
 
 export namespace messages {
 	
-	export class ChatTokenUsage {
-	    inputTokens: number;
-	    outputTokens: number;
-	    totalTokens: number;
-	    steps: number;
+	export class RunStep {
+	    id: string;
+	    messageId: string;
 	    chatId: string;
+	    runId: string;
+	    stepIndex: number;
+	    finishReason?: string;
+	    inputTokens?: number;
+	    outputTokens?: number;
+	    totalTokens?: number;
+	    modelId?: string;
+	    startedAtMs?: number;
+	    finishedAtMs?: number;
+	    createdAt: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new ChatTokenUsage(source);
+	        return new RunStep(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.messageId = source["messageId"];
+	        this.chatId = source["chatId"];
+	        this.runId = source["runId"];
+	        this.stepIndex = source["stepIndex"];
+	        this.finishReason = source["finishReason"];
 	        this.inputTokens = source["inputTokens"];
 	        this.outputTokens = source["outputTokens"];
 	        this.totalTokens = source["totalTokens"];
-	        this.steps = source["steps"];
-	        this.chatId = source["chatId"];
+	        this.modelId = source["modelId"];
+	        this.startedAtMs = source["startedAtMs"];
+	        this.finishedAtMs = source["finishedAtMs"];
+	        this.createdAt = source["createdAt"];
 	    }
+	}
+	export class ChatRunSteps {
+	    chatId: string;
+	    steps: RunStep[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ChatRunSteps(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.chatId = source["chatId"];
+	        this.steps = this.convertValues(source["steps"], RunStep);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class FileConflictWriter {
 	    chatId: string;

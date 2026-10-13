@@ -125,8 +125,8 @@ func (s *Store) handleGetMessages(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleGetChatUsage mirrors the backend get.chat-usage action with fixed
-// dummy totals. The mock holds no per-chat ledger, so steps counts every
-// stored mock message.
+// dummy steps. The mock holds no per-chat ledger, so steps is a static
+// ascending chain whose last entry carries the headline totals.
 func (s *Store) handleGetChatUsage(w http.ResponseWriter, r *http.Request) {
 	wsID := r.PathValue("workspaceId")
 	chatID := r.PathValue("chatId")
@@ -137,11 +137,23 @@ func (s *Store) handleGetChatUsage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, r, http.StatusOK, map[string]any{
-		"chatId":       chatID,
-		"inputTokens":  6000,
-		"outputTokens": 2000,
-		"totalTokens":  8000,
-		"steps":        len(s.Messages),
+		"chatId": chatID,
+		"steps": []map[string]any{
+			{
+				"id": "step-1", "messageId": "m-1", "chatId": chatID, "runId": "run-1",
+				"stepIndex": 0, "finishReason": "tool-calls",
+				"inputTokens": 4000, "outputTokens": 100, "totalTokens": 4100,
+				"modelId": "mock-model", "startedAtMs": 1000, "finishedAtMs": 2000,
+				"createdAt": "2026-01-01T00:00:00.000Z",
+			},
+			{
+				"id": "step-2", "messageId": "m-1", "chatId": chatID, "runId": "run-1",
+				"stepIndex": 1, "finishReason": "stop",
+				"inputTokens": 6000, "outputTokens": 2000, "totalTokens": 8000,
+				"modelId": "mock-model", "startedAtMs": 2000, "finishedAtMs": 3000,
+				"createdAt": "2026-01-01T00:00:01.000Z",
+			},
+		},
 	})
 }
 
